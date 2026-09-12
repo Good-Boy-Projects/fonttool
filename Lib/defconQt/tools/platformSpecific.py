@@ -16,8 +16,8 @@ of this file.
 
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QFontDatabase
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QFontDatabase
 
 # ------
 # Colors
@@ -47,9 +47,11 @@ def fixedFont():
 
     TODO: test more
 
-    .. _QFont: http://doc.qt.io/qt-5/qfont.html
+    .. _QFont: http://doc.qt.io/qt-6/qfont.html
     """
-    font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+    # QFontDatabase.FixedFont moved to the scoped QFontDatabase.SystemFont
+    # enum in Qt6 (was a bare QFontDatabase.FixedFont in Qt5).
+    font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
     if sys.platform == "win32":
         # pick Consolas instead of Courier New
         font.setFamily("Consolas")
@@ -94,6 +96,8 @@ def glyphCellHeaderHeight():
 
 
 def scaleModifier():
+    # Qt6 scopes modifier flags under Qt.KeyboardModifier (was a bare
+    # Qt.AltModifier / Qt.ControlModifier in Qt5).
     if sys.platform == "darwin":
-        return Qt.AltModifier
-    return Qt.ControlModifier
+        return Qt.KeyboardModifier.AltModifier
+    return Qt.KeyboardModifier.ControlModifier

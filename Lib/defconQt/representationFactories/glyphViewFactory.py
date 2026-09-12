@@ -3,7 +3,7 @@ The *glyphViewFactory* submodule
 -----------------------------
 
 The *glyphViewFactory* submodule, as the name suggests, provides suitable
-representations for the rendering of a Glyph_’s elements (points, Bézier
+representations for the rendering of a Glyph_'s elements (points, Bézier
 handles, components etc.).
 
 .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
@@ -15,9 +15,9 @@ from fontTools.pens.basePen import BasePen
 from fontTools.pens.qtPen import QtPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ufoLib.pointPen import AbstractPointPen
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QGraphicsColorizeEffect
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPainterPath, QPixmap
+from PySide6.QtWidgets import QGraphicsColorizeEffect
 
 from defconQt.tools.drawing import applyEffectToPixmap, colorToQColor
 
@@ -29,11 +29,18 @@ from defconQt.tools.drawing import applyEffectToPixmap, colorToQColor
 def NoComponentsQPainterPathFactory(glyph):
     pen = NoComponentsQtPen(glyph.layer)
     glyph.draw(pen)
-    pen.path.setFillRule(Qt.WindingFill)
+    pen.path.setFillRule(Qt.FillRule.WindingFill)
     return pen.path
 
 
 class NoComponentsQtPen(QtPen):
+    def __init__(self, glyphSet, path=None):
+        # See qPainterPathFactory.py for why path is constructed explicitly:
+        # QtPen falls back to PyQt5's QPainterPath internally if path is None.
+        if path is None:
+            path = QPainterPath()
+        super().__init__(glyphSet, path=path)
+
     def addComponent(self, glyphName, transformation):
         pass
 
@@ -46,14 +53,15 @@ class NoComponentsQtPen(QtPen):
 def OnlyComponentsQPainterPathFactory(glyph):
     pen = OnlyComponentsQtPen(glyph.layer)
     glyph.draw(pen)
-    pen.path.setFillRule(Qt.WindingFill)
+    pen.path.setFillRule(Qt.FillRule.WindingFill)
     return pen.path
 
 
 class OnlyComponentsQtPen(BasePen):
     def __init__(self, glyphSet):
         super().__init__(glyphSet)
-        self.pen = QtPen(glyphSet)
+        # Explicit path= here too, same reasoning as above.
+        self.pen = QtPen(glyphSet, path=QPainterPath())
         self.path = self.pen.path
 
     def _moveTo(self, p):
