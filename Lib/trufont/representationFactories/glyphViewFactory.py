@@ -1,7 +1,8 @@
 from fontTools.misc.transform import Transform
 from fontTools.pens.qtPen import QtPen
 from fontTools.ufoLib.pointPen import PointToSegmentPen
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPainterPath
 
 from defconQt.representationFactories.glyphViewFactory import OnlyComponentsQtPen
 
@@ -31,8 +32,8 @@ def SelectedComponentsQPainterPathFactory(glyph):
             originPts.append(t.transformPoint((0, 0)))
         else:
             component.drawPoints(pointPen)
-    pen.path.setFillRule(Qt.WindingFill)
-    selectedPen.path.setFillRule(Qt.WindingFill)
+    pen.path.setFillRule(Qt.FillRule.WindingFill)
+    selectedPen.path.setFillRule(Qt.FillRule.WindingFill)
     return (pen.path, selectedPen.path, originPts)
 
 
@@ -44,7 +45,7 @@ def SelectedComponentsQPainterPathFactory(glyph):
 def ComponentQPainterPathFactory(component):
     pen = OnlyComponentsQtPen(component.font)
     component.draw(pen)
-    pen.path.setFillRule(Qt.WindingFill)
+    pen.path.setFillRule(Qt.FillRule.WindingFill)
     return pen.path
 
 
@@ -137,12 +138,18 @@ def SplitLinesQPainterPathFactory(glyph):
     pen = SplitLinesFromPathQtPen(glyph.layer)
     for contour in glyph:
         contour.draw(pen)
-    pen.path.setFillRule(Qt.WindingFill)
+    pen.path.setFillRule(Qt.FillRule.WindingFill)
     return (pen.path, pen.lines)
 
 
 class SplitLinesFromPathQtPen(QtPen):
     def __init__(self, glyphSet, path=None):
+        # Explicit path= so fontTools.pens.qtPen.QtPen doesn't fall back to
+        # its own internal `from PyQt5.QtGui import QPainterPath` when this
+        # class is constructed with no path (as SplitLinesQPainterPathFactory
+        # does above). Same fix as elsewhere in this port.
+        if path is None:
+            path = QPainterPath()
         super().__init__(glyphSet, path)
         self.lines = []
         self._curPos = (0, 0)

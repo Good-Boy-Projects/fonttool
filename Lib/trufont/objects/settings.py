@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 
 from defcon import Color
-from PyQt5.QtCore import QByteArray, QSettings
-from PyQt5.QtGui import QColor
+from PySide6.QtCore import QByteArray, QSettings
+from PySide6.QtGui import QColor
 
 from defconQt.tools.drawing import colorToQColor
 

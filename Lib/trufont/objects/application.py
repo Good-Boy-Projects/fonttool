@@ -1,9 +1,9 @@
 import os
 
 from defcon.tools.notifications import NotificationCenter
-from PyQt5.QtCore import QEvent, QStandardPaths, Qt, QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QAction, QApplication, QFileDialog
+from PySide6.QtCore import QEvent, QStandardPaths, Qt, QUrl
+from PySide6.QtGui import QAction, QDesktopServices
+from PySide6.QtWidgets import QApplication, QFileDialog
 
 from trufont.controls.aboutDialog import AboutDialog
 from trufont.drawingTools.knifeTool import KnifeTool
@@ -77,13 +77,15 @@ class Application(QApplication):
     def event(self, event):
         eventType = event.type()
         # respond to OSX open events
-        if eventType == QEvent.FileOpen:
+        # QEvent.FileOpen / ApplicationStateChange moved under QEvent.Type in Qt6
+        if eventType == QEvent.Type.FileOpen:
             filePath = event.file()
             self.openFile(filePath)
             return True
-        elif eventType == QEvent.ApplicationStateChange:
+        elif eventType == QEvent.Type.ApplicationStateChange:
             applicationState = self.applicationState()
-            if applicationState == Qt.ApplicationActive:
+            # Qt.ApplicationActive/Inactive moved under Qt.ApplicationState in Qt6
+            if applicationState == Qt.ApplicationState.ApplicationActive:
                 if not self._launched:
                     notification = "applicationLaunched"
                     self.loadGlyphList()
@@ -93,7 +95,7 @@ class Application(QApplication):
                     # XXX: do it
                     # self.lookupExternalChanges()
                 self.postNotification(notification)
-            elif applicationState == Qt.ApplicationInactive:
+            elif applicationState == Qt.ApplicationState.ApplicationInactive:
                 self.postNotification("applicationWillIdle")
         return super().event(event)
 
@@ -283,8 +285,10 @@ class Application(QApplication):
         if userPath and os.path.isdir(userPath):
             return userPath
 
+        # QStandardPaths.AppLocalDataLocation moved under
+        # QStandardPaths.StandardLocation in Qt6
         appDataFolder = QStandardPaths.standardLocations(
-            QStandardPaths.AppLocalDataLocation
+            QStandardPaths.StandardLocation.AppLocalDataLocation
         )[0]
         subFolder = os.path.normpath(os.path.join(appDataFolder, name))
 
@@ -428,12 +432,14 @@ class Application(QApplication):
                 if not importKey
                 else settings.importFileDialogState()
             )
+            # QStandardPaths.DocumentsLocation moved under
+            # QStandardPaths.StandardLocation in Qt6
             directory = (
                 None
                 if state
-                else QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[
-                    0
-                ]
+                else QStandardPaths.standardLocations(
+                    QStandardPaths.StandardLocation.DocumentsLocation
+                )[0]
             )
             title = self.tr("Open File") if openFile else self.tr("Import File")
             dialog = QFileDialog(
@@ -441,10 +447,12 @@ class Application(QApplication):
             )
             if state:
                 dialog.restoreState(state)
-            dialog.setAcceptMode(QFileDialog.AcceptOpen)
-            dialog.setFileMode(QFileDialog.ExistingFile)
+            # QFileDialog.AcceptOpen / ExistingFile moved under
+            # QFileDialog.AcceptMode / FileMode in Qt6
+            dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+            dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
             dialog.selectNameFilter(all_supported_types_filter)
-            ret = dialog.exec_()
+            ret = dialog.exec()
             # save current directory
             # TODO: should open w/o file chooser also update current dir?
             state = dialog.saveState()
@@ -596,7 +604,7 @@ class Application(QApplication):
     # Help
 
     def about(self):
-        AboutDialog(self.activeWindow()).exec_()
+        AboutDialog(self.activeWindow()).exec()
 
     # ------------
     # Recent files

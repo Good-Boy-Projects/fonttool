@@ -2,9 +2,10 @@ import os
 import platform
 import subprocess
 
-from PyQt5.Qt import PYQT_VERSION_STR, QT_VERSION_STR
-from PyQt5.QtCore import QEvent, QSize, Qt
-from PyQt5.QtWidgets import (
+from PySide6 import __version__ as PYSIDE_VERSION_STR
+from PySide6.QtCore import QEvent, QSize, Qt
+from PySide6.QtCore import __version__ as QT_VERSION_STR
+from PySide6.QtWidgets import (
     QApplication,
     QDialog,
     QFrame,
@@ -44,15 +45,19 @@ except Exception:
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None):
+        # Window flag constants moved under the scoped Qt.WindowType enum
+        # in Qt6 (were bare Qt.MSWindowsFixedSizeDialogHint etc. in Qt5).
         super().__init__(
             parent,
-            Qt.MSWindowsFixedSizeDialogHint
-            | Qt.WindowTitleHint
-            | Qt.WindowSystemMenuHint
-            | Qt.WindowCloseButtonHint,
+            Qt.WindowType.MSWindowsFixedSizeDialogHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowSystemMenuHint
+            | Qt.WindowType.WindowCloseButtonHint,
         )
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowModality(Qt.ApplicationModal)
+        # Qt.WA_DeleteOnClose moved under Qt.WidgetAttribute in Qt6
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        # Qt.ApplicationModal moved under Qt.WindowModality in Qt6
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setWindowTitle(self.tr("About"))
 
         app = QApplication.instance()
@@ -60,7 +65,7 @@ class AboutDialog(QDialog):
         domain = app.organizationDomain()
 
         iconLabel = QLabel(self)
-        iconLabel.setAlignment(Qt.AlignCenter)
+        iconLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         iconLabel.setMaximumWidth(250)
         iconLabel.setMinimumSize(250, 210)
         icon = self.windowIcon()
@@ -75,6 +80,10 @@ class AboutDialog(QDialog):
             ).format(__version__)
         )
         textLabel = QLabel(self)
+        # "PyQt {}" -> "PySide6 {}" since the binding actually running has
+        # changed; QT_VERSION_STR / PYSIDE_VERSION_STR replace the old
+        # PyQt5.Qt-umbrella QT_VERSION_STR / PYQT_VERSION_STR constants,
+        # which have no PySide6 equivalent under that name.
         text = self.tr(
             "<p>{n} is a free and open source font editor and scripting "
             "environment made by the developers of the {n} community.</p>"
@@ -83,11 +92,11 @@ class AboutDialog(QDialog):
             "style='color: #356FDE'>defcon</a> UFO library and exposes a "
             "<a href='http://robofab.com/' style='color: #356FDE'>robofab</a>"
             "-like API for scripting purposes.</p>"
-            "<p>Running on Qt {} (PyQt {}).</p>"
+            "<p>Running on Qt {} (PySide6 {}).</p>"
             "<p>Version {} {} – Python {}."
         ).format(
             QT_VERSION_STR,
-            PYQT_VERSION_STR,
+            PYSIDE_VERSION_STR,
             __version__,
             gitShortHash,
             platform.python_version(),
@@ -124,7 +133,10 @@ class AboutDialog(QDialog):
         textLayout.addWidget(titleLabel)
         textLayout.addWidget(self.stackWidget)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        # QSizePolicy.Preferred / Expanding moved under QSizePolicy.Policy in Qt6
+        spacer.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
+        )
         textLayout.addWidget(spacer)
 
         mainLayout = QHBoxLayout()
@@ -139,8 +151,8 @@ class AboutDialog(QDialog):
         buttonsLayout = QHBoxLayout(frame)
         for index, text in enumerate(("Authors", "License", "Credits")):
             label = QLabel(text, self)
-            label.setAlignment(Qt.AlignCenter)
-            label.setCursor(Qt.PointingHandCursor)
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setCursor(Qt.CursorShape.PointingHandCursor)
             label.setProperty("index", index + 1)
             label.setStyleSheet("color: #356FDE; text-decoration: underline")
             label.installEventFilter(self)
@@ -163,7 +175,8 @@ class AboutDialog(QDialog):
     # ----------
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.MouseButtonPress:
+        # QEvent.MouseButtonPress moved under QEvent.Type in Qt6
+        if event.type() == QEvent.Type.MouseButtonPress:
             index = obj.property("index")
             if index is not None:
                 if self.stackWidget.currentIndex() == index:

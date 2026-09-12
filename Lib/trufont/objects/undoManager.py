@@ -2,7 +2,7 @@ import functools
 import pickle
 import weakref
 
-from PyQt5.QtCore import QCoreApplication, QObject, pyqtSignal
+from PySide6.QtCore import QCoreApplication, QObject, Signal
 
 tr = functools.partial(QCoreApplication.translate, "UndoManager")
 _valueNotifications = n = dict()
@@ -70,10 +70,10 @@ def _setGlyphContent(glyph, attr, value):
 
 
 class UndoManager(QObject):
-    canUndoChanged = pyqtSignal(bool)
-    canRedoChanged = pyqtSignal(bool)
-    # undoTextChanged = pyqtSignal(str)
-    # redoTextChanged = pyqtSignal(str)
+    canUndoChanged = Signal(bool)
+    canRedoChanged = Signal(bool)
+    # undoTextChanged = Signal(str)
+    # redoTextChanged = Signal(str)
 
     def __init__(self, glyph):
         super().__init__()
