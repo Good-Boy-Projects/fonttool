@@ -8,9 +8,9 @@ various display parameters.
 .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
 """
 
-from PyQt5.QtCore import QEvent, QPoint, QPointF, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QPainter
-from PyQt5.QtWidgets import QPinchGesture, QScrollArea, QSizePolicy, QWidget
+from PySide6.QtCore import QEvent, QPoint, QPointF, QSize, Qt, Signal
+from PySide6.QtGui import QCursor, QPainter
+from PySide6.QtWidgets import QPinchGesture, QScrollArea, QSizePolicy, QWidget
 
 from defconQt.tools import drawing, platformSpecific
 
@@ -22,13 +22,13 @@ UIFont = platformSpecific.otherUIFont()
 
 
 class GlyphWidget(QWidget):
-    pointSizeModified = pyqtSignal(int)
+    pointSizeModified = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setContextMenuPolicy(Qt.DefaultContextMenu)
-        self.setFocusPolicy(Qt.ClickFocus)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self._fitViewport = True
         self._glyph = None
         self._scrollArea = None
@@ -70,7 +70,7 @@ class GlyphWidget(QWidget):
         self._noPointSizePadding = 200
         self._verticalCenterYBuffer = 0
 
-        self._backgroundColor = Qt.white
+        self._backgroundColor = Qt.GlobalColor.white
 
     # --------------
     # Custom Methods
@@ -570,7 +570,7 @@ class GlyphWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setFont(UIFont)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = event.rect()
 
         # draw the background
@@ -652,9 +652,9 @@ class GlyphView(QScrollArea):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.grabGesture(Qt.PinchGesture)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.grabGesture(Qt.GestureType.PinchGesture)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setWidgetResizable(True)
 
         self._glyphWidget = self.glyphWidgetClass(self)
@@ -805,12 +805,12 @@ class GlyphView(QScrollArea):
     # ----------
 
     def event(self, event):
-        if event.type() == QEvent.Gesture:
+        if event.type() == QEvent.Type.Gesture:
             return self.gestureEvent(event)
         return super().event(event)
 
     def gestureEvent(self, event):
-        gesture = event.gesture(Qt.PinchGesture)
+        gesture = event.gesture(Qt.GestureType.PinchGesture)
         if gesture:
             self.pinchTriggered(gesture)
             return True
@@ -818,5 +818,5 @@ class GlyphView(QScrollArea):
 
     def pinchTriggered(self, gesture):
         changeFlags = gesture.changeFlags()
-        if changeFlags & QPinchGesture.ScaleFactorChanged:
+        if changeFlags & QPinchGesture.ChangeFlag.ScaleFactorChanged:
             self.zoom(gesture.scaleFactor() - gesture.lastScaleFactor(), "cursor")

@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QCheckBox,
@@ -38,7 +38,9 @@ class SettingsWindow(QDialog):
         self.tabWidget.addNamedTab(MetricsWindowTab(self))
         self.tabWidget.addNamedTab(MiscTab(self))
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -115,7 +117,7 @@ class GlyphSetTab(QWidget):
         buttonsLayout.addWidget(self.addGlyphSetButton)
         buttonsLayout.addWidget(self.removeGlyphSetButton)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         buttonsLayout.addWidget(spacer)
         buttonsLayout.addWidget(self.importButton)
 
@@ -148,7 +150,7 @@ class GlyphSetTab(QWidget):
             glyphSetName = "%s %d" % (glyphSetName, index)
         self.glyphSets[glyphSetName] = glyphNames
         item = QListWidgetItem(glyphSetName, self.glyphSetList)
-        item.setFlags(item.flags() | Qt.ItemIsEditable)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
         self.glyphSetList.setCurrentItem(item)
         self.glyphSetList.editItem(item)
         self.removeGlyphSetButton.setEnabled(True)
@@ -215,7 +217,7 @@ class GlyphSetTab(QWidget):
         if glyphSetNames:
             for glyphSetName in glyphSetNames:
                 item = QListWidgetItem(glyphSetName, self.glyphSetList)
-                item.setFlags(item.flags() | Qt.ItemIsEditable)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             self.glyphSetList.setCurrentRow(0)
         self.removeGlyphSetButton.setEnabled(len(self.glyphSets) > 1)
 
@@ -253,7 +255,7 @@ class MetricsWindowTab(QWidget):
 
         self.inputTextLabel = QLabel(self.tr("Default text:"), self)
         self.inputTextList = QListWidget(self)
-        self.inputTextList.setDragDropMode(QAbstractItemView.InternalMove)
+        self.inputTextList.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.addItemButton = QPushButton(self)
         self.addItemButton.setIcon(icons.i_plus())
         self.addItemButton.clicked.connect(self.addItem)
@@ -265,7 +267,7 @@ class MetricsWindowTab(QWidget):
         buttonsLayout.addWidget(self.addItemButton)
         buttonsLayout.addWidget(self.removeItemButton)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         buttonsLayout.addWidget(spacer)
 
         layout = QVBoxLayout(self)
@@ -278,7 +280,7 @@ class MetricsWindowTab(QWidget):
 
     def addItem(self):
         item = QListWidgetItem(self.inputTextList)
-        item.setFlags(item.flags() | Qt.ItemIsEditable)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
         self.inputTextList.setCurrentItem(item)
         self.inputTextList.editItem(item)
         self.removeItemButton.setEnabled(True)
@@ -294,7 +296,7 @@ class MetricsWindowTab(QWidget):
         entries = settings.metricsWindowComboBoxItems()
         for entry in entries:
             item = QListWidgetItem(entry, self.inputTextList)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
         if not len(entries):
             self.removeItemButton.setEnabled(False)
 
@@ -329,11 +331,11 @@ class MiscTab(QWidget):
         )
 
         buttonsLayout = QHBoxLayout()
-        buttonsLayout.setSizeConstraint(QHBoxLayout.SetMinimumSize)
+        buttonsLayout.setSizeConstraint(QHBoxLayout.SizeConstraint.SetMinimumSize)
         buttonsLayout.addWidget(self.addItemButton)
         buttonsLayout.addWidget(self.removeItemButton)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         buttonsLayout.addWidget(spacer)
 
         layout = QVBoxLayout(self)

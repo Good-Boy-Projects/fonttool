@@ -11,9 +11,9 @@ lists_.
 import collections.abc
 
 from defcon import Font, Glyph
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QCheckBox,
@@ -31,7 +31,7 @@ __all__ = ["ListView"]
 
 
 class AbstractListModel(QAbstractTableModel):
-    valueChanged = pyqtSignal(QModelIndex, object, object)
+    valueChanged = Signal(QModelIndex, object, object)
 
     def __init__(self, lst, parent=None):
         super().__init__(parent)
@@ -86,14 +86,14 @@ class AbstractListModel(QAbstractTableModel):
 
     # builtins
 
-    def data(self, index, role=Qt.DisplayRole):
-        if index.isValid() and role in (Qt.DisplayRole, Qt.EditRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+        if index.isValid() and role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
             row, column = index.row(), index.column()
             return self._data(row, column)
         return None
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if index.isValid() and role in (Qt.DisplayRole, Qt.EditRole):
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if index.isValid() and role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
             row, column = index.row(), index.column()
             oldValue = self._data(row, column)
             self._setData(row, column, value)
@@ -143,21 +143,21 @@ class AbstractListModel(QAbstractTableModel):
 
     def flags(self, index):
         flags = (
-            Qt.ItemIsEnabled
-            | Qt.ItemIsSelectable
-            | Qt.ItemIsDragEnabled
-            | Qt.ItemIsDropEnabled
-            | Qt.ItemNeverHasChildren
+            Qt.ItemFlag.ItemIsEnabled
+            | Qt.ItemFlag.ItemIsSelectable
+            | Qt.ItemFlag.ItemIsDragEnabled
+            | Qt.ItemFlag.ItemIsDropEnabled
+            | Qt.ItemFlag.ItemNeverHasChildren
         )
         if not isinstance(self.data(index), (Font, Glyph)):
-            flags |= Qt.ItemIsEditable
+            flags |= Qt.ItemFlag.ItemIsEditable
         return flags
 
     def supportedDropActions(self):
-        return Qt.CopyAction | Qt.MoveAction
+        return Qt.DropAction.CopyAction | Qt.DropAction.MoveAction
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+    def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
+        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             if section >= len(self._headerLabels):
                 return None
             else:
@@ -242,7 +242,7 @@ class OneTwoListModel(AbstractListModel):
 
 class ListItemDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
-        data = index.data(Qt.EditRole)
+        data = index.data(Qt.ItemDataRole.EditRole)
         if isinstance(data, bool):
             checkBox = QCheckBox(parent)
             checkBox.setChecked(data)
@@ -268,7 +268,7 @@ class ListItemDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         super().paint(painter, option, index)
-        data = index.data(Qt.DisplayRole)
+        data = index.data(Qt.ItemDataRole.DisplayRole)
         if isinstance(data, QColor):
             rect = option.rect.adjusted(2, 1, -2, -1)
             if data.isValid():
@@ -286,7 +286,7 @@ class ListItemDelegate(QStyledItemDelegate):
                 )
 
     def setModelData(self, editor, model, index):
-        data = index.data(Qt.EditRole)
+        data = index.data(Qt.ItemDataRole.EditRole)
         if isinstance(data, bool):
             value = editor.isChecked()
             model.setData(index, value)
@@ -297,7 +297,7 @@ class ListItemDelegate(QStyledItemDelegate):
 class ListProxy(QProxyStyle):
     def drawPrimitive(self, element, option, painter, widget):
         # http://stackoverflow.com/a/9611137/2037879
-        if element == QStyle.PE_IndicatorItemViewItemDrop and not option.rect.isNull():
+        if element == QStyle.PrimitiveElement.PE_IndicatorItemViewItemDrop and not option.rect.isNull():
             # we don't drag over items
             # XXX: possible to forbid this in the model instead?
             if option.rect.height():
@@ -332,15 +332,15 @@ class ListView(QTreeView):
     .. _QTreeView: http://doc.qt.io/qt-5/qtreeview.html
     """
 
-    currentItemChanged = pyqtSignal(object)
-    selectionChanged_ = pyqtSignal()
+    currentItemChanged = Signal(object)
+    selectionChanged_ = Signal()
 
     flatListModelClass = FlatListModel
     oneTwoListModelClass = OneTwoListModel
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.setDragEnabled(False)
         self.setItemDelegate(ListItemDelegate())
         self.setRootIsDecorated(False)
@@ -356,13 +356,13 @@ class ListView(QTreeView):
             return
         data = model.data(index)
         if isinstance(data, QColor):
-            if QApplication.keyboardModifiers() & Qt.AltModifier:
+            if QApplication.keyboardModifiers() & Qt.KeyboardModifier.AltModifier:
                 model.setData(index, QColor())
             else:
                 dialog = QColorDialog(self)
                 dialog.setCurrentColor(data)
-                dialog.setOption(QColorDialog.ShowAlphaChannel)
-                ret = dialog.exec_()
+                dialog.setOption(QColorDialog.ColorDialogOption.ShowAlphaChannel)
+                ret = dialog.exec()
                 if ret:
                     color = dialog.currentColor()
                     model.setData(index, color)
@@ -412,7 +412,7 @@ class ListView(QTreeView):
             self.setEditTriggers(self._triggers)
         else:
             self._triggers = self.editTriggers()
-            self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
     def headerLabels(self):
         """
@@ -523,7 +523,7 @@ class ListView(QTreeView):
             # figure out the indexes
             dragRow = self.currentIndex().row()
             dropRow = self.indexAt(event.pos()).row()
-            if self.dropIndicatorPosition() == QAbstractItemView.BelowItem:
+            if self.dropIndicatorPosition() == QAbstractItemView.DropIndicatorPosition.BelowItem:
                 dropRow += 1
             # extract
             model = self.model()

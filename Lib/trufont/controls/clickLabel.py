@@ -1,13 +1,13 @@
-from PyQt5.QtCore import QPoint, Qt, pyqtSignal
-from PyQt5.QtWidgets import QLabel
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtWidgets import QLabel
 
 
 class ClickLabel(QLabel):
-    clicked = pyqtSignal()
+    clicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCursor(Qt.PointingHandCursor)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
     def contextMenu(self):
         return None
@@ -22,7 +22,7 @@ class ClickLabel(QLabel):
                 action.setCheckable(True)
                 action.setChecked(True)
         pos = QPoint(0, self.height())
-        menu.exec_(self.mapToGlobal(pos))
+        menu.exec(self.mapToGlobal(pos))
         # leaveEvent isn't always triggered since we overlay a menu
         # cleanup manually.
         self._disableUnderline()

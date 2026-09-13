@@ -1,19 +1,19 @@
-from PyQt5.QtCore import QRect, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPainter, QPainterPath
-from PyQt5.QtWidgets import QApplication, QSizePolicy, QWidget
+from PySide6.QtCore import QRect, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPainterPath
+from PySide6.QtWidgets import QApplication, QSizePolicy, QWidget
 
 _hPad = 10
 _vPad = 6
 
 
 class RoundedButtonSet(QWidget):
-    clicked = pyqtSignal()
+    clicked = Signal()
     SingleSelection = 1
     OneOrMoreSelection = 2
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self._options = []
         self._selection = set()
@@ -51,7 +51,7 @@ class RoundedButtonSet(QWidget):
     # ----------
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             for recordIndex, rect in self._optionsRects.items():
                 if QRect(*rect).contains(event.pos()):
                     self._clickedIndex = recordIndex
@@ -59,7 +59,7 @@ class RoundedButtonSet(QWidget):
                     self._selection = {recordIndex}
                     if (
                         self._selectionMode > 1
-                        and QApplication.keyboardModifiers() & Qt.ShiftModifier
+                        and QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
                     ):
                         shiftSelection = self._selection ^ self._oldSelection
                         if shiftSelection:
@@ -72,13 +72,13 @@ class RoundedButtonSet(QWidget):
             super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             clickedRect = self._optionsRects[self._clickedIndex]
             if QRect(*clickedRect).contains(event.pos()):
                 self._selection = {self._clickedIndex}
                 if (
                     self._selectionMode > 1
-                    and QApplication.keyboardModifiers() & Qt.ShiftModifier
+                    and QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
                 ):
                     shiftSelection = self._selection ^ self._oldSelection
                     if shiftSelection:
@@ -94,7 +94,7 @@ class RoundedButtonSet(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._optionsRects = {}
         w, h = self.width(), self.height()
         metrics = self.fontMetrics()
@@ -107,7 +107,7 @@ class RoundedButtonSet(QWidget):
         x = 0
         linePath = QPainterPath()
         for text in self._options[:-1]:
-            x += hphp + metrics.width(text)
+            x += hphp + metrics.horizontalAdvance(text)
             linePath.moveTo(x, 0)
             linePath.lineTo(x, h)
         pen = painter.pen()
@@ -115,7 +115,7 @@ class RoundedButtonSet(QWidget):
         pen.setWidth(0)
         painter.setPen(pen)
         painter.drawPath(path)
-        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         painter.drawPath(linePath)
         painter.restore()
 
@@ -128,7 +128,7 @@ class RoundedButtonSet(QWidget):
                 color = QColor(63, 63, 63)
             painter.setPen(color)
             painter.drawText(0, 0, text)
-            textWidth = metrics.width(text)
+            textWidth = metrics.horizontalAdvance(text)
             rectWidth = textWidth + hphp
             rect = (left, 0, rectWidth, h)
             self._optionsRects[index] = rect
@@ -138,6 +138,6 @@ class RoundedButtonSet(QWidget):
     def sizeHint(self):
         metrics = self.fontMetrics()
         hphp = 2 * _hPad
-        width = sum(metrics.width(text) + hphp for text in self._options) or hphp
+        width = sum(metrics.horizontalAdvance(text) + hphp for text in self._options) or hphp
         height = 2 * _vPad + metrics.lineSpacing()
         return QSize(width, height)

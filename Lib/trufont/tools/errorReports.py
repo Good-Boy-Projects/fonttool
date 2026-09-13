@@ -1,23 +1,23 @@
 import sys
 import traceback
 
-from PyQt5.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox
 
 _showMessages = True
 
 
 def showCriticalException(e, message=None):
-    _prepareException(e, QMessageBox.Critical, message)
+    _prepareException(e, QMessageBox.Icon.Critical, message)
 
 
 def showWarningException(e, message=None):
-    _prepareException(e, QMessageBox.Warning, message)
+    _prepareException(e, QMessageBox.Icon.Warning, message)
 
 
 def exceptionCallback(etype, value, tb):
     title = ":("
     message = "TruFont has encountered a problem and must shutdown."
-    _displayException(etype, value, tb, QMessageBox.Critical, title, message)
+    _displayException(etype, value, tb, QMessageBox.Icon.Critical, title, message)
 
 
 def _displayException(etype, value, tb, kind, title, message):
@@ -25,19 +25,20 @@ def _displayException(etype, value, tb, kind, title, message):
     exc = traceback.format_exception(etype, value, tb)
     exc_text = "".join(exc)
     print(exc_text, file=sys.stderr)
+    print(exc_text, file=sys.__stderr__, flush=True)
 
     if _showMessages:
         messageBox = QMessageBox(kind, title, message)
-        standardButtons = QMessageBox.Ok | QMessageBox.Close
-        if kind == QMessageBox.Critical:
-            standardButtons |= QMessageBox.Ignore
+        standardButtons = QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Close
+        if kind == QMessageBox.Icon.Critical:
+            standardButtons |= QMessageBox.StandardButton.Ignore
         messageBox.setStandardButtons(standardButtons)
         messageBox.setDetailedText(exc_text)
         messageBox.setInformativeText(str(value))
-        result = messageBox.exec_()
-        if result == QMessageBox.Close:
+        result = messageBox.exec()
+        if result == QMessageBox.StandardButton.Close:
             sys.exit(1)
-        elif result == QMessageBox.Ignore:
+        elif result == QMessageBox.StandardButton.Ignore:
             _showMessages = False
 
 

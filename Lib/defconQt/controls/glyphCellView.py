@@ -12,9 +12,9 @@ import time
 import unicodedata
 
 from defcon import Glyph
-from PyQt5.QtCore import QRectF, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QCursor, QDrag, QPainter, QPainterPath, QPalette
-from PyQt5.QtWidgets import QApplication, QScrollArea, QSizePolicy, QWidget
+from PySide6.QtCore import QRectF, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QCursor, QDrag, QPainter, QPainterPath, QPalette
+from PySide6.QtWidgets import QApplication, QScrollArea, QSizePolicy, QWidget
 
 from defconQt.representationFactories.glyphCellFactory import (
     GlyphCellHeaderHeight,
@@ -23,7 +23,7 @@ from defconQt.representationFactories.glyphCellFactory import (
 from defconQt.tools import platformSpecific
 from defconQt.tools.glyphsMimeData import GlyphsMimeData
 
-backgroundColor = Qt.white
+backgroundColor = Qt.GlobalColor.white
 cellGridColor = QColor(190, 190, 190)
 insertionPositionColor = QColor.fromRgbF(0.16, 0.3, 0.85, 1)
 
@@ -49,15 +49,15 @@ class GlyphCellWidget(QWidget):
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """
 
-    glyphActivated = pyqtSignal(Glyph)
-    glyphsDropped = pyqtSignal()
-    selectionChanged = pyqtSignal()
+    glyphActivated = Signal(Glyph)
+    glyphsDropped = Signal()
+    selectionChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_KeyCompression)
-        self.setFocusPolicy(Qt.ClickFocus)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setAttribute(Qt.WidgetAttribute.WA_KeyCompression)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self._cellWidth = 50
         self._cellHeight = 50
         self._cellWidthExtra = 0
@@ -294,7 +294,7 @@ class GlyphCellWidget(QWidget):
         left = 0
         top = cellHeight
 
-        painter.fillRect(visibleRect, Qt.white)
+        painter.fillRect(visibleRect, Qt.GlobalColor.white)
         for index, glyph in enumerate(self._glyphs):
             t = top - cellHeight
             rect = (left, t, cellWidth, cellHeight)
@@ -302,9 +302,9 @@ class GlyphCellWidget(QWidget):
             if visibleRect.intersects(visibleRect.__class__(*rect)):
                 if index in self._selection:
                     palette = self.palette()
-                    active = palette.currentColorGroup() != QPalette.Inactive
+                    active = palette.currentColorGroup() != QPalette.ColorGroup.Inactive
                     opacityMultiplier = platformSpecific.colorOpacityMultiplier()
-                    selectionColor = palette.color(QPalette.Highlight)
+                    selectionColor = palette.color(QPalette.ColorRole.Highlight)
                     # TODO: alpha values somewhat arbitrary (here and in
                     # glyphLineView)
                     selectionColor.setAlphaF(0.2 * opacityMultiplier if active else 0.7)
@@ -355,12 +355,12 @@ class GlyphCellWidget(QWidget):
             path.addRect(x - 2, y, 3, cellHeight)
             path.addEllipse(x - 5, y - 5, 9, 9)
             path.addEllipse(x - 5, y + cellHeight - 5, 9, 9)
-            path.setFillRule(Qt.WindingFill)
+            path.setFillRule(Qt.FillRule.WindingFill)
             pen = painter.pen()
-            pen.setColor(Qt.white)
+            pen.setColor(Qt.GlobalColor.white)
             pen.setWidth(2)
             painter.setPen(pen)
-            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.drawPath(path)
             painter.fillPath(path, insertionPositionColor)
 
@@ -405,23 +405,23 @@ class GlyphCellWidget(QWidget):
     # mouse
 
     def mousePressEvent(self, event):
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
             self._oldSelection = set(self._selection)
             index = self._findIndexForEvent(event)
             modifiers = event.modifiers()
 
             if index is None:
-                if not (modifiers & Qt.ControlModifier or modifiers & Qt.ShiftModifier):
+                if not (modifiers & Qt.KeyboardModifier.ControlModifier or modifiers & Qt.KeyboardModifier.ShiftModifier):
                     # TODO: consider setSelection(None)
                     self.setSelection(set())
                 return
 
-            if modifiers & Qt.ControlModifier:
+            if modifiers & Qt.KeyboardModifier.ControlModifier:
                 if index in self._selection:
                     self._selection.remove(index)
                 else:
                     self._selection.add(index)
-            elif modifiers & Qt.ShiftModifier:
+            elif modifiers & Qt.KeyboardModifier.ShiftModifier:
                 self._selection = self._linearSelection(index)
             elif index not in self._selection:
                 self._selection = {index}
@@ -434,7 +434,7 @@ class GlyphCellWidget(QWidget):
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & int(Qt.LeftButton | Qt.RightButton):
+        if event.buttons() & (Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton):
             index = self._findIndexForEvent(event, True)
             if index == self._lastSelectedCell:
                 return
@@ -445,12 +445,12 @@ class GlyphCellWidget(QWidget):
                 return
 
             modifiers = event.modifiers()
-            if modifiers & Qt.ControlModifier:
+            if modifiers & Qt.KeyboardModifier.ControlModifier:
                 if index in self._selection and index in self._oldSelection:
                     self._selection.remove(index)
                 elif index not in self._selection and index not in self._oldSelection:
                     self._selection.add(index)
-            elif modifiers & Qt.ShiftModifier:
+            elif modifiers & Qt.KeyboardModifier.ShiftModifier:
                 self._selection = self._linearSelection(index)
             else:
                 self._selection = {index}
@@ -461,10 +461,10 @@ class GlyphCellWidget(QWidget):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
             self._maybeDragPosition = None
             # XXX: we should use modifiers registered on click
-            if not event.modifiers() & Qt.ShiftModifier:
+            if not event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 if self._lastSelectedCell is not None:
                     self._selection = {self._lastSelectedCell}
                 else:
@@ -475,7 +475,7 @@ class GlyphCellWidget(QWidget):
             super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
             index = self._findIndexForEvent(event)
             if index is not None:
                 self.glyphActivated.emit(self._glyphs[index])
@@ -513,13 +513,13 @@ class GlyphCellWidget(QWidget):
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()
-        if key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right):
+        if key in (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right):
             self._arrowKeyPressEvent(event)
-        elif key == Qt.Key_Return:
+        elif key == Qt.Key.Key_Return:
             index = self._lastSelectedCell
             if index is not None:
                 self.glyphActivated.emit(self._glyphs[index])
-        elif modifiers in (Qt.NoModifier, Qt.ShiftModifier):
+        elif modifiers in (Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier):
             self._glyphNameInputEvent(event)
         else:
             super().keyPressEvent(event)
@@ -531,18 +531,18 @@ class GlyphCellWidget(QWidget):
         # TODO: it might be the case that self._lastSelectedCell cannot be None
         # when we arrive here whatsoever
         if self._lastSelectedCell is not None:
-            if key == Qt.Key_Up:
+            if key == Qt.Key.Key_Up:
                 delta = -self._columnCount
-            elif key == Qt.Key_Down:
+            elif key == Qt.Key.Key_Down:
                 delta = self._columnCount
-            elif key == Qt.Key_Left:
+            elif key == Qt.Key.Key_Left:
                 delta = -1
-            elif key == Qt.Key_Right:
+            elif key == Qt.Key.Key_Right:
                 delta = 1
             newSel = self._lastSelectedCell + delta * count
             if newSel < 0 or newSel >= len(self._glyphs):
                 return
-            if modifiers & Qt.ShiftModifier:
+            if modifiers & Qt.KeyboardModifier.ShiftModifier:
                 self._selection |= self._linearSelection(newSel)
             else:
                 self._selection = {newSel}
@@ -640,7 +640,7 @@ class GlyphCellWidget(QWidget):
         mimeData = GlyphsMimeData()
         mimeData.setGlyphs(glyphs)
         drag.setMimeData(mimeData)
-        drag.exec_()
+        drag.exec()
         self._maybeDragPosition = None
         return True
 

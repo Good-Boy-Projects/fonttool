@@ -1,7 +1,7 @@
 import random
 
 from hsluv import hsluv_to_rgb
-from PyQt5.QtGui import QColor
+from PySide6.QtGui import QColor
 
 # http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/  # noqa
 golden_ratio_conjugate = 0.618033988749895

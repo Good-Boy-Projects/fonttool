@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QMimeData
+from PySide6.QtCore import QMimeData
 
 
 class GlyphsMimeData(QMimeData):

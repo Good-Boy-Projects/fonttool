@@ -1,8 +1,8 @@
 import os
 
-from PyQt5.QtCore import QRegularExpression, QSize
-from PyQt5.QtGui import QRegularExpressionValidator
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QRegularExpression, QSize
+from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
@@ -29,8 +29,8 @@ def VersionValidator(parent):
 
 def HLine(parent):
     widget = QFrame(parent)
-    widget.setFrameShape(QFrame.HLine)
-    widget.setFrameShadow(QFrame.Sunken)
+    widget.setFrameShape(QFrame.Shape.HLine)
+    widget.setFrameShadow(QFrame.Shadow.Sunken)
     return widget
 
 
@@ -40,7 +40,7 @@ class ExtensionBuilderWindow(QDialog):
         self.setWindowTitle(self.tr("Extension Builder"))
 
         layout = QFormLayout(self)
-        layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+        layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
         self.nameEdit = QLineEdit(self)
         self.versionEdit = QLineEdit(self)
@@ -55,10 +55,12 @@ class ExtensionBuilderWindow(QDialog):
 
         self.resourcesRootBox = FolderComboBox(self)
         self.resourcesRootBox.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Preferred
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
         self.scriptRootBox = FolderComboBox(self)
-        self.scriptRootBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.scriptRootBox.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
         self.scriptRootBox.currentFolderModified.connect(self.updateView)
         layout.addRow(self.tr("Resources root:"), self.resourcesRootBox)
         layout.addRow(self.tr("Script root:"), self.scriptRootBox)
@@ -82,7 +84,8 @@ class ExtensionBuilderWindow(QDialog):
         layout.addRow(self.tr("Requires TruFont:"), self.tfVersionEdit)
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Save | QDialogButtonBox.Close, self
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Close,
+            self,
         )
         buttonBox.accepted.connect(self.saveFile)
         buttonBox.rejected.connect(self.close)
@@ -121,8 +124,8 @@ class ExtensionBuilderWindow(QDialog):
         dialog = QFileDialog(
             self, self.tr("Save File"), None, "TruFont Extension (*.tfExt)"
         )
-        dialog.setAcceptMode(QFileDialog.AcceptSave)
-        ok = dialog.exec_()
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+        ok = dialog.exec()
         if ok:
             path = dialog.selectedFiles()[0]
             e.save(path)

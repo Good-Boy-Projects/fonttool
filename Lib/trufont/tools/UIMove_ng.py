@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QLineF, QPointF
+from PySide6.QtCore import QLineF, QPointF
 
 from trufont.objects.defcon import TContour
 from trufont.tools import bezierMath

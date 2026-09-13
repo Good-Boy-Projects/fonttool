@@ -28,14 +28,11 @@ classifiers = [
     "Topic :: Text Processing :: Fonts",
 ]
 
-# Phase 1 scope: refresh dependency floors against current PyPI releases,
-# stay on PyQt5 — the PySide6 swap is Phase 2, deliberately not bundled in here.
 dependencies = [
     "booleanOperations>=0.9.0",       # was >=0.7.0
     "defcon>=0.10.3",                 # was >=0.6.0
     "fonttools[unicode,ufo,lxml,type1,woff]>=4.53.0",  # was >=4.0.0
     "hsluv>=5.0.4",                   # was >=0.0.2 (old version predates the real PyPI release)
-    "pyqt5>=5.15.0",                  # was >=5.5.0 — still PyQt5 for Phase 1
     "ufo-extractor>=0.8.1",           # PyPI name stays "ufo-extractor"; import name is "extractor"
     "ufo2ft>=3.0.0",                  # was >=0.5.3
     "PySide6>6.7.0",
