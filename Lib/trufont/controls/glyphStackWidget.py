@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QColor, QPainter
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import QWidget
 
 
 class GlyphStackWidget(QWidget):
@@ -11,7 +11,7 @@ class GlyphStackWidget(QWidget):
         self._glyphs = []
         self._maxWidth = 300
 
-        self._backgroundColor = Qt.transparent
+        self._backgroundColor = Qt.GlobalColor.transparent
         self._glyphColor = QColor.fromRgbF(0, 0, 0, 0.15)
 
         self._upm = 1000
@@ -121,7 +121,7 @@ class GlyphStackWidget(QWidget):
     def paintEvent(self, event):
         rect = event.rect()
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         painter.fillRect(rect, self._backgroundColor)
         if not self._glyphs:

@@ -1,6 +1,6 @@
 import re
 
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 _parseGL_RE = re.compile("([A-Za-z_0-9.]+);([0-9A-F]{4})")
 

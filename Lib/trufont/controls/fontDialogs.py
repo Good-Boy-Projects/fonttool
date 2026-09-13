@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
@@ -33,7 +33,7 @@ class AddGlyphsDialog(QDialog):
     # TODO: implement Frederik's Glyph Construction Builder
     def __init__(self, currentGlyphs=None, parent=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Add Glyphs…"))
         self.currentGlyphs = currentGlyphs
         self.currentGlyphNames = [glyph.name for glyph in currentGlyphs]
@@ -48,7 +48,7 @@ class AddGlyphsDialog(QDialog):
             self.importCharDrop.addItem(name, glyphNames)
         self.importCharDrop.currentIndexChanged[int].connect(self.importGlyphs)
         self.addGlyphsEdit = QPlainTextEdit(self)
-        self.addGlyphsEdit.setFocus(Qt.OtherFocusReason)
+        self.addGlyphsEdit.setFocus(Qt.FocusReason.OtherFocusReason)
 
         self.addUnicodeBox = QCheckBox(self.tr("Add Unicode"), self)
         self.addUnicodeBox.setChecked(True)
@@ -56,7 +56,9 @@ class AddGlyphsDialog(QDialog):
         self.addAsTemplateBox.setChecked(True)
         self.sortFontBox = QCheckBox(self.tr("Sort font"), self)
         self.overrideBox = QCheckBox(self.tr("Override"), self)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -76,7 +78,7 @@ class AddGlyphsDialog(QDialog):
     @classmethod
     def getNewGlyphNames(cls, parent, currentGlyphs=None):
         dialog = cls(currentGlyphs, parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         markColor = dialog.markColorWidget.color()
         if markColor is not None:
             markColor = markColor.getRgbF()
@@ -107,16 +109,16 @@ class AddGlyphsDialog(QDialog):
         if changed:
             self.addGlyphsEdit.setPlainText(" ".join(editorNames))
             cursor = self.addGlyphsEdit.textCursor()
-            cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+            cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
             self.addGlyphsEdit.setTextCursor(cursor)
         self.importCharDrop.setCurrentIndex(0)
-        self.addGlyphsEdit.setFocus(Qt.OtherFocusReason)
+        self.addGlyphsEdit.setFocus(Qt.FocusReason.OtherFocusReason)
 
 
 class SortDialog(QDialog):
     def __init__(self, desc=None, parent=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Sort…"))
 
         self.smartSortBox = QRadioButton(self.tr("Canned sort"), self)
@@ -185,7 +187,9 @@ class SortDialog(QDialog):
                 btn.clicked.connect(self._deleteRow)
         self.customSortGroup.setLayout(self.customSortLayout)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -242,7 +246,7 @@ class SortDialog(QDialog):
     @classmethod
     def getDescriptor(cls, parent, sortDescriptor=None):
         dialog = cls(sortDescriptor, parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         if dialog.glyphSetBox.isChecked():
             data = dialog.glyphSetDrop.currentData()
             name = dialog.glyphSetDrop.currentText()

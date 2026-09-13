@@ -1,12 +1,12 @@
-from PyQt5.QtCore import QRectF, QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QPainterPath
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PySide6.QtCore import QRectF, QSize, Qt
+from PySide6.QtGui import QColor, QPainter, QPainterPath
+from PySide6.QtWidgets import QSizePolicy, QWidget
 
 
 class GlyphAlignmentWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
         self._alignment = None
         self._alignmentPaths = []
@@ -96,7 +96,7 @@ class GlyphAlignmentWidget(QWidget):
         return QSize(27, 27)
 
     def mousePressEvent(self, event):
-        if event.button() & Qt.LeftButton:
+        if event.button() & Qt.MouseButton.LeftButton:
             pos = event.localPos()
             # TODO: press should be actuated on release...
             for index, path in enumerate(self._alignmentPaths):
@@ -156,6 +156,6 @@ class GlyphAlignmentWidget(QWidget):
                     QRectF(sx + offset, sy, 2 * selectedRadius, 2 * selectedRadius)
                 )
         painter.drawPath(borderPath - radioPath)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.fillPath(radioPath, self._color)
         painter.fillPath(selectedPath, self._selectedColor)

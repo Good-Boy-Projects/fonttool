@@ -1,11 +1,11 @@
 import os
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QComboBox, QFileDialog, QStyle
+from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QComboBox, QFileDialog, QStyle
 
 
 class FolderComboBox(QComboBox):
-    currentFolderModified = pyqtSignal(str)
+    currentFolderModified = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,7 +33,7 @@ class FolderComboBox(QComboBox):
         self.clear()
         path = self._currentFolder
         if path is not None:
-            dirIcon = self.style().standardIcon(QStyle.SP_DirIcon)
+            dirIcon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
             self.addItem(dirIcon, os.path.basename(path))
         else:
             self.addItem("<None>")
@@ -50,7 +50,7 @@ class FolderComboBox(QComboBox):
             self,
             self.tr("Choose Directory"),
             self._currentFolder,
-            QFileDialog.ShowDirsOnly,
+            QFileDialog.Option.ShowDirsOnly,
         )
         if path:
             self.setCurrentFolder(path)

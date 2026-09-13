@@ -1,8 +1,8 @@
 import os
 import re
 
-from PyQt5.QtCore import QEvent, QSize, QSizeF, QStandardPaths, Qt, pyqtSignal
-from PyQt5.QtGui import (
+from PySide6.QtCore import QEvent, QSize, QSizeF, QStandardPaths, Qt, Signal
+from PySide6.QtGui import (
     QBrush,
     QColor,
     QCursor,
@@ -11,8 +11,8 @@ from PyQt5.QtGui import (
     QPainter,
     QPalette,
 )
-from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtWidgets import (
+from PySide6.QtPrintSupport import QPrinter
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QComboBox,
@@ -41,8 +41,8 @@ pointSizes = [50, 75, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500]
 
 class MetricsWindow(BaseWindow):
     def __init__(self, font, string=None, parent=None):
-        super().__init__(parent, Qt.Window)
-        self.setAttribute(Qt.WA_DeleteOnClose, False)
+        super().__init__(parent, Qt.WindowType.Window)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
         if string is None:
             try:
@@ -229,17 +229,17 @@ class MetricsToolBar(QToolBar):
     Emits *pointSizeChanged*.
     """
 
-    glyphsChanged = pyqtSignal(list)
-    settingsChanged = pyqtSignal(dict)
+    glyphsChanged = Signal(list)
+    settingsChanged = Signal(dict)
 
     def __init__(self, font, parent=None):
         super().__init__(parent)
-        auxiliaryWidth = self.fontMetrics().width("0") * 8
+        auxiliaryWidth = self.fontMetrics().horizontalAdvance("0") * 8
         self.leftTextField = MetricsSequenceEdit(font, self)
         self.leftTextField.setMaximumWidth(auxiliaryWidth)
         self.textField = MetricsSequenceComboBox(font, self)
         # XXX: had to use Maximum because Preferred did extend the widget(?)
-        self.textField.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.textField.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         self.rightTextField = MetricsSequenceEdit(font, self)
         self.rightTextField.setMaximumWidth(auxiliaryWidth)
         self.leftTextField.textEdited.connect(self.textField.editTextChanged)
@@ -280,7 +280,7 @@ class MetricsToolBar(QToolBar):
         action = self.toolsMenu.addAction(self.tr("Line Height:"))
         action.setEnabled(False)
         lineHeight = QWidgetAction(self.toolsMenu)
-        self._lineHeightSlider = slider = QSlider(Qt.Horizontal, self)
+        self._lineHeightSlider = slider = QSlider(Qt.Orientation.Horizontal, self)
         # QSlider works with integers so we'll just divide what comes out of it
         # by 100
         slider.setMinimum(80)
@@ -381,13 +381,13 @@ class MetricsToolBar(QToolBar):
 
     def showEvent(self, event):
         super().showEvent(event)
-        self.textField.setFocus(Qt.OtherFocusReason)
+        self.textField.setFocus(Qt.FocusReason.OtherFocusReason)
 
 
 class MetricsLineWidget(GlyphLineWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_KeyCompression)
+        self.setAttribute(Qt.WidgetAttribute.WA_KeyCompression)
 
         # inbound notification
         app = QApplication.instance()
@@ -413,18 +413,18 @@ class MetricsLineWidget(GlyphLineWidget):
 
     def exportToPDF(self, path=None):
         if path is None:
-            desktop = QStandardPaths.standardLocations(QStandardPaths.DesktopLocation)
+            desktop = QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)
             path = os.path.join(desktop[0], "metricsWindow.pdf")
 
-        printer = QPrinter(QPrinter.ScreenResolution)
+        printer = QPrinter(QPrinter.PrinterMode.ScreenResolution)
         printer.setOutputFileName(path)
-        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
         printer.setFullPage(True)
-        printer.setPaperSize(QSizeF(self.size()), QPrinter.DevicePixel)
+        printer.setPaperSize(QSizeF(self.size()), QPrinter.Unit.DevicePixel)
 
         painter = QPainter()
         painter.begin(printer)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         if self._rightToLeft:
             self.paintRightToLeft(painter, self.geometry())
         else:
@@ -448,13 +448,13 @@ class MetricsLineWidget(GlyphLineWidget):
             glyph = self._glyphRecords[self._selected].glyph
             # TODO: not really DRY w other widgets
             delta = event.count()
-            if modifiers & Qt.ShiftModifier:
+            if modifiers & Qt.KeyboardModifier.ShiftModifier:
                 delta *= 10
-                if modifiers & Qt.ControlModifier:
+                if modifiers & Qt.KeyboardModifier.ControlModifier:
                     delta *= 10
-            if key == Qt.Key_Left:
+            if key == Qt.Key.Key_Left:
                 delta = -delta
-            if modifiers & Qt.AltModifier:
+            if modifiers & Qt.KeyboardModifier.AltModifier:
                 if glyph.leftMargin is not None:
                     glyph.leftMargin += delta
             else:
@@ -465,7 +465,7 @@ class MetricsLineWidget(GlyphLineWidget):
         if self._selected is not None:
             glyphCount = len(self._glyphRecords)
             delta = event.count()
-            if key == Qt.Key_Home:
+            if key == Qt.Key.Key_Home:
                 delta = -delta
             newSelected = self._selected + delta
             if newSelected < 0 or newSelected >= glyphCount:
@@ -475,9 +475,9 @@ class MetricsLineWidget(GlyphLineWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key in (Qt.Key_Home, Qt.Key_End):
+        if key in (Qt.Key.Key_Home, Qt.Key.Key_End):
             self._navKeyPressEvent(event)
-        elif key in (Qt.Key_Left, Qt.Key_Right):
+        elif key in (Qt.Key.Key_Left, Qt.Key.Key_Right):
             self._arrowKeyPressEvent(event)
         else:
             super().keyPressEvent(event)
@@ -512,7 +512,7 @@ class MetricsLineView(GlyphLineView):
 
 class MetricsTableItem(QTableWidgetItem):
     def setData(self, role, value):
-        if role & Qt.EditRole:
+        if role & Qt.ItemDataRole.EditRole:
             # don't set empty data
             # TODO: maybe fetch the value from cell back to the editor
             if value == "":
@@ -532,23 +532,23 @@ class MetricsTableItemDelegate(QStyledItemDelegate):
     # cell by default. Implement this.
     # TODO: cycle b/w editable cell area
     def eventFilter(self, editor, event):
-        if event.type() == QEvent.KeyPress:
+        if event.type() == QEvent.Type.KeyPress:
             chg = None
             count = event.count()
             key = event.key()
-            if key == Qt.Key_Up:
+            if key == Qt.Key.Key_Up:
                 chg = count
-            elif key == Qt.Key_Down:
+            elif key == Qt.Key.Key_Down:
                 chg = -count
-            elif not key == Qt.Key_Return:
+            elif not key == Qt.Key.Key_Return:
                 return False
             if chg is not None:
                 modifiers = event.modifiers()
-                if modifiers & Qt.AltModifier:
+                if modifiers & Qt.KeyboardModifier.AltModifier:
                     return False
-                elif modifiers & Qt.ShiftModifier:
+                elif modifiers & Qt.KeyboardModifier.ShiftModifier:
                     chg *= 10
-                    if modifiers & Qt.ControlModifier:
+                    if modifiers & Qt.KeyboardModifier.ControlModifier:
                         chg *= 10
                 cur = int(editor.text())
                 editor.setText(str(cur + chg))
@@ -559,11 +559,11 @@ class MetricsTableItemDelegate(QStyledItemDelegate):
 
 
 class MetricsTable(QTableWidget):
-    selectedIndexChanged = pyqtSignal(object)
+    selectedIndexChanged = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(5, 1, parent)
-        self.setAttribute(Qt.WA_KeyCompression)
+        self.setAttribute(Qt.WidgetAttribute.WA_KeyCompression)
         self.setItemDelegate(MetricsTableItemDelegate(self))
         data = [
             None,
@@ -574,13 +574,15 @@ class MetricsTable(QTableWidget):
         ]
         # Don't grey-out disabled cells
         palette = self.palette()
-        fgColor = palette.color(QPalette.Text)
-        palette.setColor(QPalette.Disabled, QPalette.Text, fgColor)
+        fgColor = palette.color(QPalette.ColorRole.Text)
+        palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, fgColor)
         self.setPalette(palette)
         for index, title in enumerate(data):
             item = MetricsTableItem(title)
-            item.setFlags(Qt.NoItemFlags)
-            item.setTextAlignment(int(Qt.AlignRight | Qt.AlignVCenter))
+            item.setFlags(Qt.ItemFlag.NoItemFlags)
+            item.setTextAlignment(
+                int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            )
             self.setItem(index, 0, item)
         # let's use this one column to compute the width of others
         columnWidth = self.columnWidth(0)
@@ -592,16 +594,16 @@ class MetricsTable(QTableWidget):
         self._kerningEnabled = False
 
         # always show a scrollbar to fix layout
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self._glyphs = []
         self.fillGlyphs()
         self.resizeRowsToContents()
         self.currentItemChanged.connect(self._itemChanged)
         self.cellChanged.connect(self._cellEdited)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         # edit cell on single click, not double
-        self.setEditTriggers(QAbstractItemView.CurrentChanged)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.CurrentChanged)
 
     # -------------
     # Notifications
@@ -696,7 +698,7 @@ class MetricsTable(QTableWidget):
 
     def updateCells(self, keepColor=True):
         self.blockSignals(True)
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         coloredColumn = self._coloredColumn
         self.fillGlyphs()
         if (
@@ -705,11 +707,11 @@ class MetricsTable(QTableWidget):
             and coloredColumn < self.columnCount()
         ):
             self.colorColumn(coloredColumn)
-        self.setEditTriggers(QAbstractItemView.CurrentChanged)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.CurrentChanged)
         self.blockSignals(False)
 
     def colorColumn(self, column):
-        emptyBrush = QBrush(Qt.NoBrush)
+        emptyBrush = QBrush(Qt.BrushStyle.NoBrush)
         selectionColor = QColor(235, 235, 235)
         for i in range(self.rowCount()):
             if self._coloredColumn is not None:
@@ -744,9 +746,9 @@ class MetricsTable(QTableWidget):
                 content = str(content)
             item = MetricsTableItem(content)
             if disableCell:
-                item.setFlags(Qt.NoItemFlags)
+                item.setFlags(Qt.ItemFlag.NoItemFlags)
             elif content is None:
-                item.setFlags(Qt.ItemIsEnabled)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             # TODO: should fields be centered? I find left-aligned more
             # natural to read, personally...
             # item.setTextAlignment(Qt.AlignCenter)

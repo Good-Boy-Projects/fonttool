@@ -2,7 +2,7 @@ import os
 
 from fontTools.svgLib import SVGPath
 from fontTools.ufoLib.glifLib import readGlyphFromString
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     QBuffer,
     QByteArray,
     QEvent,
@@ -10,9 +10,9 @@ from PyQt5.QtCore import (
     QObject,
     QRectF,
     Qt,
-    pyqtSignal,
+    Signal,
 )
-from PyQt5.QtGui import (
+from PySide6.QtGui import (
     QContextMenuEvent,
     QImage,
     QImageReader,
@@ -21,7 +21,7 @@ from PyQt5.QtGui import (
     QPainterPathStroker,
     QTransform,
 )
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 from defconQt.controls.glyphContextView import GlyphContextView, GlyphFlags
 from defconQt.controls.glyphView import GlyphViewMinSizeForDetails
@@ -36,21 +36,21 @@ GlyphViewMinSizeForGrid = 10000
 
 class KeyEventFilter(QObject):
     def eventFilter(self, object, event):
-        if event.type() == QEvent.ShortcutOverride:
+        if event.type() == QEvent.Type.ShortcutOverride:
             # we'll only kang shortcut that do not have modifiers
-            if event.modifiers() == Qt.NoModifier:
+            if event.modifiers() == Qt.KeyboardModifier.NoModifier:
                 event.accept()
                 return True
         return False
 
 
 class GlyphCanvasView(GlyphContextView):
-    glyphNamesChanged = pyqtSignal()
-    toolModified = pyqtSignal(object)
+    glyphNamesChanged = Signal()
+    toolModified = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAcceptDrops(True)
         self._currentTool = BaseTool()
         self._currentToolActivated = False
@@ -109,7 +109,7 @@ class GlyphCanvasView(GlyphContextView):
         if value != self._preview:
             self._preview = value
             if value:
-                self.setCursor(Qt.OpenHandCursor)
+                self.setCursor(Qt.CursorShape.OpenHandCursor)
             else:
                 self.setCursor(self._currentTool.cursor)
             self.update()
@@ -374,7 +374,7 @@ class GlyphCanvasView(GlyphContextView):
                 img = QImage(path)
                 data = QByteArray()
                 buffer = QBuffer(data)
-                buffer.open(QIODevice.WriteOnly)
+                buffer.open(QIODevice.OpenModeFlag.WriteOnly)
                 img.save(buffer, "PNG")
                 # format
                 data = bytearray(data)
@@ -402,12 +402,12 @@ class GlyphCanvasView(GlyphContextView):
 
     def keyPressEvent(self, event):
         # TODO: put this in event filter?
-        if self._currentTool.grabKeyboard and event.key() == Qt.Key_Escape:
+        if self._currentTool.grabKeyboard and event.key() == Qt.Key.Key_Escape:
             ok = self.setCurrentTool(self._previousTool)
             if ok:
                 self.toolModified.emit(self._previousTool)
         # Note: not needed, only for parity with keyReleaseEvent
-        if not self._currentTool.grabKeyboard and event.key() == Qt.Key_Space:
+        if not self._currentTool.grabKeyboard and event.key() == Qt.Key.Key_Space:
             event.ignore()
             return
         self._redirectEvent(event, self._currentTool.keyPressEvent)
@@ -417,7 +417,7 @@ class GlyphCanvasView(GlyphContextView):
 
     def keyReleaseEvent(self, event):
         # TODO: I don't know why we have to do this for releaseEvent
-        if not self._currentTool.grabKeyboard and event.key() == Qt.Key_Space:
+        if not self._currentTool.grabKeyboard and event.key() == Qt.Key.Key_Space:
             event.ignore()
             return
         self._redirectEvent(event, self._currentTool.keyReleaseEvent)
@@ -429,7 +429,7 @@ class GlyphCanvasView(GlyphContextView):
         self._mouseDown = True
         if self._preview:
             self._panOrigin = event.globalPos()
-            self.setCursor(Qt.ClosedHandCursor)
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
             return
         self._redirectEvent(event, self._currentTool.mousePressEvent, True)
         app = QApplication.instance()
@@ -454,7 +454,7 @@ class GlyphCanvasView(GlyphContextView):
         app.postNotification("glyphViewMouseRelease", data)
         if hasattr(self, "_panOrigin"):
             if self._preview:
-                self.setCursor(Qt.OpenHandCursor)
+                self.setCursor(Qt.CursorShape.OpenHandCursor)
             del self._panOrigin
         self._mouseDown = False
 

@@ -17,7 +17,7 @@ should be used for spawning top-level windows (in scripting, notably).
 Both are used the same as their Qt widget parents, e.g.:
 
 >>> from defconQt.windows.baseWindows import BaseWindow
->>> from PyQt5.QtWidgets import QLabel
+>>> from PySide6.QtWidgets import QLabel
 >>> window = BaseWindow()
 >>> label = QLabel("Hello World!", window)
 >>> window.show()
@@ -30,8 +30,8 @@ its documentation for more details.
 .. _`Garbage Collector`: https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
 """
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 
 def _bootstrapGCCache(self):
@@ -60,9 +60,9 @@ class BaseMainWindow(QMainWindow):
     .. _QMainWindow: http://doc.qt.io/qt-5/qmainwindow.html
     """
 
-    def __init__(self, parent=None, flags=Qt.Window):
+    def __init__(self, parent=None, flags=Qt.WindowType.Window):
         super().__init__(parent, flags)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         _bootstrapGCCache(self)
 
     def closeEvent(self, event):
@@ -82,9 +82,9 @@ class BaseWindow(QWidget):
     .. _QWidget: http://doc.qt.io/qt-5/qwidget.html
     """
 
-    def __init__(self, parent=None, flags=Qt.Window):
+    def __init__(self, parent=None, flags=Qt.WindowType.Window):
         super().__init__(parent, flags)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         _bootstrapGCCache(self)
 
     def closeEvent(self, event):

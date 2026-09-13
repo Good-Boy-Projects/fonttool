@@ -1,8 +1,8 @@
 import sys
 
-from PyQt5.QtCore import QObject, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPalette, QTextBlockFormat, QTextCursor, QTextOption
-from PyQt5.QtWidgets import QCheckBox, QMainWindow, QPlainTextEdit, QPushButton
+from PySide6.QtCore import QObject, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPalette, QTextBlockFormat, QTextCursor, QTextOption
+from PySide6.QtWidgets import QCheckBox, QMainWindow, QPlainTextEdit, QPushButton
 
 from defconQt.tools import platformSpecific as basePlatformSpecific
 from trufont.objects import settings
@@ -11,13 +11,13 @@ from trufont.tools import platformSpecific
 
 class OutputWindow(QMainWindow):
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.Tool)
+        super().__init__(parent, Qt.WindowType.Tool)
         self.outputEdit = OutputEdit(self)
         palette = self.outputEdit.palette()
-        palette.setColor(QPalette.Base, Qt.black)
-        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.ColorRole.Base, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
         self.outputEdit.setPalette(palette)
-        self.outputEdit.viewport().setCursor(Qt.ArrowCursor)
+        self.outputEdit.viewport().setCursor(Qt.CursorShape.ArrowCursor)
         self.wrapLinesBox = QCheckBox(self.tr("Wrap Lines"), self)
         self.wrapLinesBox.toggled.connect(self.setWordWrapEnabled)
         clearOutputButton = QPushButton(self.tr("Clear"), self)
@@ -54,9 +54,9 @@ class OutputWindow(QMainWindow):
 
     def setWordWrapEnabled(self, value):
         if value:
-            wrapMode = QTextOption.WrapAtWordBoundaryOrAnywhere
+            wrapMode = QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere
         else:
-            wrapMode = QTextOption.NoWrap
+            wrapMode = QTextOption.WrapMode.NoWrap
         self.outputEdit.setWordWrapMode(wrapMode)
         self.writeSettings()
 
@@ -84,12 +84,12 @@ class OutputEdit(QPlainTextEdit):
         insert = True
         textCursor = self.textCursor()
         if not textCursor.atEnd():
-            textCursor.movePosition(QTextCursor.End)
+            textCursor.movePosition(QTextCursor.MoveOperation.End)
         if textCursor.atStart():
             insert = False
         endFormat = textCursor.charFormat()
 
-        textCursor.select(QTextCursor.Document)
+        textCursor.select(QTextCursor.SelectionType.Document)
 
         fmt = endFormat.__class__()
         bgColor = self.palette().base().color()
@@ -105,7 +105,7 @@ class OutputEdit(QPlainTextEdit):
         )
         textCursor.mergeCharFormat(fmt)
 
-        textCursor.movePosition(QTextCursor.End)
+        textCursor.movePosition(QTextCursor.MoveOperation.End)
         textCursor.setCharFormat(endFormat)
         if insert:
             textCursor.insertBlock(QTextBlockFormat())
@@ -127,12 +127,12 @@ class OutputEdit(QPlainTextEdit):
         atBottom = self.isScrollBarAtBottom()
         textCursor = self.textCursor()
         if not textCursor.atEnd():
-            self.moveCursor(QTextCursor.End)
+            self.moveCursor(QTextCursor.MoveOperation.End)
         charFormat = self.currentCharFormat()
         if stream == "stderr":
-            color = Qt.red
+            color = Qt.GlobalColor.red
         else:
-            color = self.palette().color(QPalette.Text)
+            color = self.palette().color(QPalette.ColorRole.Text)
         charFormat.setForeground(color)
         self.setCurrentCharFormat(charFormat)
         self.insertPlainText(message)
@@ -141,7 +141,7 @@ class OutputEdit(QPlainTextEdit):
 
 
 class OutputStream(QObject):
-    messagePassed = pyqtSignal(str, str)
+    messagePassed = Signal(str, str)
 
     def __init__(self, stream=None, parent=None):
         super().__init__(parent)

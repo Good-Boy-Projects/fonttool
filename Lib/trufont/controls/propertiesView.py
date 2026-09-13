@@ -2,9 +2,9 @@ import functools
 import itertools
 
 import booleanOperations
-from PyQt5.QtCore import QEvent, QLocale, QRegularExpression, QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QRegularExpressionValidator
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QEvent, QLocale, QRegularExpression, QSize, Qt
+from PySide6.QtGui import QColor, QPainter, QRegularExpressionValidator
+from PySide6.QtWidgets import (
     QApplication,
     QDoubleSpinBox,
     QGridLayout,
@@ -32,7 +32,7 @@ from trufont.tools.rlabel import RLabel  # TODO: switch to QFormLayout
 def Button(parent=None):
     btn = PathButton(parent)
     btn.setIsDownColor(QColor())
-    btn.setFocusPolicy(Qt.NoFocus)
+    btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
     btn.setSize(QSize(26, 26))
     return btn
 
@@ -74,21 +74,21 @@ def _partialTransform(glyph, matrix):
 class SpinBox(QDoubleSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAlignment(Qt.AlignRight)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.setDecimals(3)
 
     def keyPressEvent(self, event):
         key_ = None
-        if event.modifiers() & Qt.ShiftModifier:
+        if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
             key = event.key()
             preDelta = None
-            if key == Qt.Key_Up:
-                key_ = Qt.Key_PageUp
+            if key == Qt.Key.Key_Up:
+                key_ = Qt.Key.Key_PageUp
                 preDelta = 90
-            elif key == Qt.Key_Down:
-                key_ = Qt.Key_PageDown
+            elif key == Qt.Key.Key_Down:
+                key_ = Qt.Key.Key_PageDown
                 preDelta = -90
-            if preDelta and event.modifiers() & Qt.ControlModifier:
+            if preDelta and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
                 self.stepBy(preDelta)
         if key_ is not None:
             event = event.__class__(
@@ -121,8 +121,8 @@ class SpinBox(QDoubleSpinBox):
 class NumberBox(SpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAlignment(Qt.AlignLeft)
-        self.setButtonSymbols(QSpinBox.NoButtons)
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         # TODO: MAX_INT?
         self.setRange(-900000, 900000)
 
@@ -130,7 +130,7 @@ class NumberBox(SpinBox):
 class FillWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -140,7 +140,7 @@ class FillWidget(QWidget):
 class PropertiesWidget(QWidget):
     def __init__(self, font, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
 
         self._font = font
         self._glyph = None
@@ -149,7 +149,7 @@ class PropertiesWidget(QWidget):
         glyphGroup = GroupBox(self)
         glyphGroup.setTitle(self.tr("Glyph"))
         glyphLayout = QGridLayout()
-        zeroWidth = self.fontMetrics().width("0")
+        zeroWidth = self.fontMetrics().horizontalAdvance("0")
         columnOneWidth = zeroWidth * (5 + 2 * platformSpecific.widen())
 
         nameLabel = RLabel(self.tr("Name"), self)
@@ -376,11 +376,11 @@ class PropertiesWidget(QWidget):
         hdr = self.layerSetView.header()
         hdr.setMinimumSectionSize(20)
         hdr.setStretchLastSection(False)
-        hdr.setSectionResizeMode(QHeaderView.Fixed)
-        hdr.setSectionResizeMode(1, QHeaderView.Stretch)
+        hdr.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        hdr.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         hdr.resizeSection(0, 20)
         hdr.resizeSection(2, 34)
-        self.layerSetView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.layerSetView.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.layerSetView.dataDropped.connect(self.writeLayerOrder)
         self.layerSetView.valueChanged.connect(self.writeLayerAttribute)
 
@@ -402,7 +402,7 @@ class PropertiesWidget(QWidget):
         layerUpButton.clicked.connect(lambda: self.layerOffset(-1))
 
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         layersLayout.setSpacing(0)
         line = 0
@@ -1011,11 +1011,11 @@ class PropertiesView(QScrollArea):
 
     def __init__(self, font, parent=None):
         super().__init__(parent)
-        self.setFrameShape(QScrollArea.NoFrame)
+        self.setFrameShape(QScrollArea.Shape.NoFrame)
         self.setWidgetResizable(True)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
 
         self._propertiesWidget = self.propertiesWidgetClass(font, self)
         self.setWidget(self._propertiesWidget)
@@ -1025,7 +1025,7 @@ class PropertiesView(QScrollArea):
     def eventFilter(self, obj, event):
         # this works because QScrollArea.setWidget installs an eventFilter
         # on the widget
-        if obj == self.widget() and event.type() == QEvent.Resize:
+        if obj == self.widget() and event.type() == QEvent.Type.Resize:
             self.setMinimumWidth(
                 self.widget().minimumSizeHint().width()
             )  # + self.verticalScrollBar().width())

@@ -1,8 +1,8 @@
 import sys
 import unittest
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QWidget
 
 from trufont.controls.nameTabWidget import NameTabWidget
 from trufont.objects.application import Application
@@ -12,7 +12,7 @@ from trufont.windows.fontWindow import FontWindow
 
 class NameTabWidgetTest(unittest.TestCase):
 
-    app = Application(sys.argv)
+    app = QApplication.instance() or Application(sys.argv)
 
     def __init__(self, methodName):
         unittest.TestCase.__init__(self, methodName)
@@ -43,7 +43,7 @@ class NameTabWidgetTest(unittest.TestCase):
 
 class TabTestCase(unittest.TestCase):
 
-    app = Application(sys.argv)
+    app = QApplication.instance() or Application(sys.argv)
 
     def __init__(self, methodName):
         unittest.TestCase.__init__(self, methodName)
@@ -309,16 +309,16 @@ class TabTestCase(unittest.TestCase):
         # not.
         self.assertFalse(attrEdit.isTristate())
 
-        attrEdit.setCheckState(Qt.Checked)
+        attrEdit.setCheckState(Qt.CheckState.Checked)
         self.fontInfo.accept()
         value = attrEdit.checkState()
-        self.assertEqual(value, Qt.Checked)
+        self.assertEqual(value, Qt.CheckState.Checked)
         self.assertEqual(getattr(self.font.info, attrName), True)
 
-        attrEdit.setCheckState(Qt.Unchecked)
+        attrEdit.setCheckState(Qt.CheckState.Unchecked)
         self.fontInfo.accept()
         value = attrEdit.checkState()
-        self.assertEqual(value, Qt.Unchecked)
+        self.assertEqual(value, Qt.CheckState.Unchecked)
         self.assertEqual(getattr(self.font.info, attrName), False)
 
         attrEdit.setEnabled(False)
@@ -507,7 +507,7 @@ class OpenTypeTabTest(TabTestCase):
         codePageRangesEdit.setEnabled(True)
         model = codePageRangesEdit.model()
         for index in range(model.rowCount()):
-            model.item(index).setCheckState(Qt.Checked)
+            model.item(index).setCheckState(Qt.CheckState.Checked)
         self.fontInfo.accept()
 
         codePageRanges = self.font.info.openTypeOS2CodePageRanges

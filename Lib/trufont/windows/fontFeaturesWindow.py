@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QSize
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PySide6.QtCore import QSize
+from PySide6.QtWidgets import QMainWindow, QMessageBox
 
 from defconQt.controls.featureCodeEditor import FeatureCodeEditor
 from trufont.controls.fileMessageBoxes import CloseMessageBox
@@ -83,10 +83,10 @@ class FontFeaturesWindow(QMainWindow):
     def closeEvent(self, event):
         if self.editor.document().isModified():
             ret = CloseMessageBox.getCloseDocument(self)
-            if ret == QMessageBox.Save:
+            if ret == QMessageBox.StandardButton.Save:
                 self.saveFile()
                 event.accept()
-            elif ret == QMessageBox.Discard:
+            elif ret == QMessageBox.StandardButton.Discard:
                 event.accept()
             else:
                 event.ignore()
