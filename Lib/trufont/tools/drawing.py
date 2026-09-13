@@ -1,8 +1,8 @@
 import math
 
 from fontTools.misc.transform import Identity
-from PyQt5.QtCore import QLineF, QPointF, Qt
-from PyQt5.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen, QTransform
+from PySide6.QtCore import QLineF, QPointF, Qt
+from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen, QTransform
 
 from defconQt.tools import platformSpecific
 from defconQt.tools.drawing import (
@@ -21,7 +21,7 @@ from defconQt.tools.drawing import (
 _defaultColors = dict(
     # General
     # -------
-    background=QColor(Qt.white),
+    background=QColor(Qt.GlobalColor.white),
     # Font
     # ----
     # guidelines
@@ -67,7 +67,7 @@ def drawLine(painter, x1, y1, x2, y2, lineWidth=0):
     painter.save()
     pen = painter.pen()
     if x1 == x2 or y1 == y2:
-        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         # antialiased drawing blends a little in color with the background
         # reduce alpha before drawing aliased
         color = pen.color()
@@ -102,10 +102,10 @@ def drawFontGuidelines(
     *painter*.
 
     *rect* specifies the rectangle which the lines will be drawn in (usually,
-    that of the glyph’s advance width).
+    that of the glyph's advance width).
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
-    .. _QPainter: http://doc.qt.io/qt-5/qpainter.html
+    .. _QPainter: http://doc.qt.io/qt-6/qpainter.html
     """
     if not (drawLines or drawText):
         return
@@ -269,11 +269,12 @@ def drawGlyphFillAndStroke(
         font = platformSpecific.otherUIFont()
         font.setPointSize(height)
         painter.setFont(font)
-        color = QColor(Qt.lightGray)
+        color = QColor(Qt.GlobalColor.lightGray)
         color.setAlphaF(0.4)
         painter.setPen(color)
         metrics = painter.fontMetrics()
-        xOffset = -(metrics.width(text) - glyph.width) / 2
+        # QFontMetrics.width() was removed in Qt6; use horizontalAdvance()
+        xOffset = -(metrics.horizontalAdvance(text) - glyph.width) / 2
         painter.translate(xOffset, 0)
         painter.scale(1, -1)
         painter.drawText(0, 0, text)
@@ -513,8 +514,8 @@ def drawGlyphPoints(
         path, selectedPath = paths
         smoothPath, selectedSmoothPath = smoothPaths
         # fill
-        selectedPath.setFillRule(Qt.WindingFill)
-        selectedSmoothPath.setFillRule(Qt.WindingFill)
+        selectedPath.setFillRule(Qt.FillRule.WindingFill)
+        selectedSmoothPath.setFillRule(Qt.FillRule.WindingFill)
         painter.fillPath(selectedPath, onCurveColor)
         painter.fillPath(selectedSmoothPath, onCurveSmoothColor)
         # stroke
@@ -538,7 +539,7 @@ def drawGlyphPoints(
         selectedOffSize = 6.75 * scale
         path = QPainterPath()
         selectedPath = QPainterPath()
-        selectedPath.setFillRule(Qt.WindingFill)
+        selectedPath.setFillRule(Qt.FillRule.WindingFill)
         for point in outlineData["offCurvePoints"]:
             x, y = point["point"]
             selected = drawSelection and point.get("selected", False)

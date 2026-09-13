@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QObject, Qt
-from PyQt5.QtGui import QColor, QCursor, QPainter, QPainterPath, QPixmap
-from PyQt5.QtWidgets import QApplication, QGraphicsDropShadowEffect
+from PySide6.QtCore import QObject, Qt
+from PySide6.QtGui import QColor, QCursor, QPainter, QPainterPath, QPixmap
+from PySide6.QtWidgets import QApplication, QGraphicsDropShadowEffect
 
 from defconQt.tools.drawing import applyEffectToPixmap
 
@@ -90,13 +90,13 @@ class BaseTool(QObject):
 
     def makeCursor(self, whitePath, blackPath, x, y):
         pixmap = QPixmap(24, 24)
-        pixmap.fill(Qt.transparent)
+        pixmap.fill(Qt.GlobalColor.transparent)
         painter = QPainter()
         painter.begin(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.translate(0, pixmap.height())
         painter.scale(1, -1)
-        painter.fillPath(whitePath, Qt.white)
+        painter.fillPath(whitePath, Qt.GlobalColor.white)
         painter.end()
         effect = QGraphicsDropShadowEffect()
         effect.setColor(QColor.fromRgbF(0, 0, 0, 0.3))
@@ -104,10 +104,10 @@ class BaseTool(QObject):
         effect.setOffset(0, 1)
         pixmap = applyEffectToPixmap(pixmap, effect)
         painter.begin(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.translate(0, pixmap.height())
         painter.scale(1, -1)
-        painter.fillPath(blackPath, Qt.black)
+        painter.fillPath(blackPath, Qt.GlobalColor.black)
         painter.end()
         return QCursor(pixmap, int(x), int(y))
 
@@ -123,7 +123,10 @@ class BaseTool(QObject):
         pass
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MidButton:
+        # Qt.MidButton was removed outright in Qt6 (it was a deprecated
+        # alias for Qt.MiddleButton in Qt5) -- this is a real rename, not
+        # just added enum scoping.
+        if event.button() == Qt.MouseButton.MiddleButton:
             self._panOrigin = event.globalPos()
 
     def mouseMoveEvent(self, event):

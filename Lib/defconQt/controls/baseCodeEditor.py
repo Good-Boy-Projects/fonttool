@@ -8,8 +8,8 @@ including a search widget, goto dialog and code highlighter.
 
 import re
 
-from PyQt5.QtCore import QRegularExpression, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import (
+from PySide6.QtCore import QRegularExpression, QSize, Qt, Signal
+from PySide6.QtGui import (
     QColor,
     QFontMetricsF,
     QPainter,
@@ -18,7 +18,7 @@ from PyQt5.QtGui import (
     QSyntaxHighlighter,
     QTextCursor,
 )
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QDialog,
     QLabel,
     QLineEdit,
@@ -52,7 +52,7 @@ class GotoLineDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Go to…"))
 
         self.lineEdit = QLineEdit(self)
@@ -72,7 +72,7 @@ class GotoLineDialog(QDialog):
     @classmethod
     def getLineColumnNumber(cls, parent):
         dialog = cls(parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         newLine = dialog.lineEdit.text()
         if newLine:
             newLine = [int(nb) for nb in newLine.split(":")]
@@ -239,7 +239,7 @@ class BaseCodeEditor(QPlainTextEdit):
     """
 
     openBlockDelimiter = None
-    indentChanged = pyqtSignal(str)
+    indentChanged = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -289,7 +289,7 @@ class BaseCodeEditor(QPlainTextEdit):
         if not hasattr(self, "_tabWidth"):
             return
         fM = QFontMetricsF(self.font())
-        pixelWidth = fM.width(" ") * self._tabWidth
+        pixelWidth = fM.horizontalAdvance(" ") * self._tabWidth
         document = self.document()
         opt = document.defaultTextOption()
         opt.setTabStop(pixelWidth)
@@ -345,13 +345,13 @@ class BaseCodeEditor(QPlainTextEdit):
         newCursor = QTextCursor(textBlock)
         self.setTextCursor(newCursor)
         # make some headroom
-        one, two = QTextCursor.Down, QTextCursor.Up
+        one, two = QTextCursor.MoveOperation.Down, QTextCursor.MoveOperation.Up
         if scrollingUp:
             one, two = two, one
         for move in (one, one, two, two):
             self.moveCursor(move)
         # address column
-        newCursor.movePosition(QTextCursor.NextCharacter, n=columnNumber)
+        newCursor.movePosition(QTextCursor.MoveOperation.NextCharacter, n=columnNumber)
         self.setTextCursor(newCursor)
 
     # ------------
@@ -362,7 +362,7 @@ class BaseCodeEditor(QPlainTextEdit):
         painter = QPainter()
         painter.begin(self.lineNumbers)
         rect = event.rect()
-        painter.fillRect(rect, self.palette().color(QPalette.Base))
+        painter.fillRect(rect, self.palette().color(QPalette.ColorRole.Base))
         d = rect.topRight()
         a = rect.bottomRight()
         painter.setPen(QColor(150, 150, 150))
@@ -394,7 +394,7 @@ class BaseCodeEditor(QPlainTextEdit):
                     top,
                     self.lineNumbers.width() - 8,
                     self.fontMetrics().height(),
-                    Qt.AlignRight,
+                    Qt.AlignmentFlag.AlignRight,
                     number,
                 )
             block = block.next()
@@ -414,7 +414,7 @@ class BaseCodeEditor(QPlainTextEdit):
         # Avoid too frequent geometry changes
         if digits < 3:
             digits = 3
-        return 10 + self.fontMetrics().width("9") * digits
+        return 10 + self.fontMetrics().horizontalAdvance("9") * digits
 
     def updateLineNumberArea(self, rect, dy):
         if dy:
@@ -445,12 +445,14 @@ class BaseCodeEditor(QPlainTextEdit):
         if cursor is None:
             cursor = self.textCursor()
         indent = 0
-        cursor.select(QTextCursor.LineUnderCursor)
+        cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         lineLength = len(cursor.selectedText()) // len(self._indent)
-        cursor.movePosition(QTextCursor.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
         while lineLength > 0:
             cursor.movePosition(
-                QTextCursor.NextCharacter, QTextCursor.KeepAnchor, len(self._indent)
+                QTextCursor.MoveOperation.NextCharacter,
+                QTextCursor.MoveMode.KeepAnchor,
+                len(self._indent),
             )
             if cursor.selectedText() == self._indent:
                 indent += 1
@@ -461,7 +463,7 @@ class BaseCodeEditor(QPlainTextEdit):
             # cursor.movePosition(QTextCursor.NoMove)
             cursor.setPosition(cursor.position())
             lineLength -= 1
-        cursor.movePosition(QTextCursor.EndOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
         return indent
 
     def performLinewiseIndent(self, cursor, positive=True):
@@ -478,26 +480,29 @@ class BaseCodeEditor(QPlainTextEdit):
 
         cursor.beginEditBlock()
         for _ in range(pBlock - aBlock + 1):
-            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
             if positive:
                 cursor.insertText(self._indent)
             else:
                 cursor.movePosition(
-                    QTextCursor.NextCharacter, QTextCursor.KeepAnchor, len(self._indent)
+                    QTextCursor.MoveOperation.NextCharacter,
+                    QTextCursor.MoveMode.KeepAnchor,
+                    len(self._indent),
                 )
                 if cursor.selectedText() == self._indent:
                     cursor.removeSelectedText()
-            cursor.movePosition(QTextCursor.NextBlock)
+            cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
         cursor.endEditBlock()
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_Return:
+        if key == Qt.Key.Key_Return:
             cursor = self.textCursor()
             indentLvl = self.findLineIndentLevel()
             if self.openBlockDelimiter is not None:
                 cursor.movePosition(
-                    QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor
+                    QTextCursor.MoveOperation.PreviousCharacter,
+                    QTextCursor.MoveMode.KeepAnchor,
                 )
                 if cursor.selectedText() == self.openBlockDelimiter:
                     indentLvl += 1
@@ -505,21 +510,21 @@ class BaseCodeEditor(QPlainTextEdit):
             newLineSpace = "".join(self._indent for _ in range(indentLvl))
             cursor = self.textCursor()
             cursor.insertText(newLineSpace)
-        elif key in (Qt.Key_Backspace, Qt.Key_Backtab):
+        elif key in (Qt.Key.Key_Backspace, Qt.Key.Key_Backtab):
             cursor = self.textCursor()
-            if key == Qt.Key_Backtab and cursor.hasSelection():
+            if key == Qt.Key.Key_Backtab and cursor.hasSelection():
                 self.performLinewiseIndent(cursor, False)
             else:
                 cursor.movePosition(
-                    QTextCursor.PreviousCharacter,
-                    QTextCursor.KeepAnchor,
+                    QTextCursor.MoveOperation.PreviousCharacter,
+                    QTextCursor.MoveMode.KeepAnchor,
                     len(self._indent),
                 )
                 if cursor.selectedText() == self._indent:
                     cursor.removeSelectedText()
                 else:
                     super().keyPressEvent(event)
-        elif key == Qt.Key_Tab:
+        elif key == Qt.Key.Key_Tab:
             cursor = self.textCursor()
             if cursor.hasSelection():
                 self.performLinewiseIndent(cursor)

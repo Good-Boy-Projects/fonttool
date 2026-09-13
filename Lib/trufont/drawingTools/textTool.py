@@ -1,8 +1,8 @@
 import unicodedata
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QKeySequence, QPainterPath
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QKeySequence, QPainterPath
+from PySide6.QtWidgets import QApplication
 
 from trufont.drawingTools.baseTool import BaseTool
 
@@ -76,26 +76,26 @@ class TextTool(BaseTool):
 
     def drawingColor(self, attr, flags):
         if attr == "componentFillColor":
-            return Qt.black
+            return Qt.GlobalColor.black
         return None
 
     # events
 
     def keyPressEvent(self, event):
         key = event.key()
-        if event.matches(QKeySequence.Paste):
+        if event.matches(QKeySequence.StandardKey.Paste):
             # XXX: the menu item should also go down this codepath
             clipboard = QApplication.clipboard()
             mimeData = clipboard.mimeData()
             if mimeData.hasText():
                 self._insertUnicodings(mimeData.text())
-        elif key == Qt.Key_Left:
+        elif key == Qt.Key.Key_Left:
             # TODO: we'll probably need to reform this stuff for RTL
             self._layoutManager.caretPrevious()
-        elif key == Qt.Key_Right:
+        elif key == Qt.Key.Key_Right:
             self._layoutManager.caretNext()
-        elif key in (Qt.Key_Backspace, Qt.Key_Delete):
-            self._layoutManager.delete(forward=(key == Qt.Key_Delete))
+        elif key in (Qt.Key.Key_Backspace, Qt.Key.Key_Delete):
+            self._layoutManager.delete(forward=(key == Qt.Key.Key_Delete))
         else:
             text = event.text()
             if not _isUnicodeChar(text):
@@ -104,7 +104,7 @@ class TextTool(BaseTool):
             self._insertUnicodings(text)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             pos = self.parent().mapFromCanvas(event.localPos())
             self._layoutManager.setCaretFromPos(pos)
         else:

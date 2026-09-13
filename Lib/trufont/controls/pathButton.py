@@ -1,13 +1,13 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QAbstractButton
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QAbstractButton
 
 
 class PathButton(QAbstractButton):
     def __init__(self, parent=None):
         super().__init__(parent)
         # TODO: make it TabFocus + make sure there's a corresponding visual cue
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self._drawingCommands = []
         self._isDownColor = None
@@ -73,7 +73,7 @@ class PathButton(QAbstractButton):
                 if isDown:
                     color = color.darker(120)
                 painter.save()
-                painter.setRenderHint(QPainter.Antialiasing)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
                 painter.fillPath(path, color)
                 painter.restore()
             else:
@@ -81,7 +81,7 @@ class PathButton(QAbstractButton):
                     color = color.darker(150)
                 painter.save()
                 if cmd[-1] == "a":
-                    painter.setRenderHint(QPainter.Antialiasing)
+                    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
                 pen = painter.pen()
                 pen.setColor(color)
                 pen.setWidth(int(cmd[0]))

@@ -6,14 +6,14 @@ from fontTools.feaLib.error import FeatureLibError
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.svgLib import SVGPath
 from fontTools.ufoLib.glifLib import readGlyphFromString
-from PyQt5.QtCore import QEvent, QMimeData, QObject, QSize, QStandardPaths, Qt
-from PyQt5.QtGui import QColor, QKeySequence, QPainter, QPainterPath
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QEvent, QMimeData, QObject, QSize, QStandardPaths, Qt
+from PySide6.QtGui import QColor, QKeySequence, QPainter, QPainterPath, QShortcut
+from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
+    QFrame,
     QHBoxLayout,
     QMessageBox,
-    QShortcut,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -84,17 +84,23 @@ class PageWidget(QWidget):
 
 
 class PreviewEventFilter(QObject):
-    filterKeyEvents = (QEvent.ShortcutOverride, QEvent.KeyPress, QEvent.KeyRelease)
+    filterKeyEvents = (
+        QEvent.Type.ShortcutOverride,
+        QEvent.Type.KeyPress,
+        QEvent.Type.KeyRelease,
+    )
 
     def eventFilter(self, obj, event):
         if not obj.isWidgetType():
             return False
         # or should we reset on WindowActivate?
-        if event.type() == QEvent.WindowDeactivate:
-            self.parent()._setGlyphPreview(False)
+        if event.type() == QEvent.Type.WindowDeactivate:
+            parent = self.parent()
+            if hasattr(parent, "_setGlyphPreview"):
+                parent._setGlyphPreview(False)
         if event.type() in self.filterKeyEvents:
-            if not event.isAutoRepeat() and event.key() == Qt.Key_Space:
-                self.parent()._setGlyphPreview(event.type() != QEvent.KeyRelease)
+            if not event.isAutoRepeat() and event.key() == Qt.Key.Key_Space:
+                self.parent()._setGlyphPreview(event.type() != QEvent.Type.KeyRelease)
                 event.accept()
                 return True
         return False
@@ -120,7 +126,7 @@ class FontWindow(BaseWindow):
         self.glyphCellView.selectionChanged.connect(self._selectionChanged)
         self.glyphCellView.setAcceptDrops(True)
         self.glyphCellView.setCellRepresentationName("TruFont.GlyphCell")
-        self.glyphCellView.setFrameShape(self.glyphCellView.NoFrame)
+        self.glyphCellView.setFrameShape(QFrame.Shape.NoFrame)
         self.glyphCellView.setFocus()
 
         self.tabWidget = TabWidget(self)
@@ -131,9 +137,7 @@ class FontWindow(BaseWindow):
         self.stackWidget = QStackedWidget(self)
         self.stackWidget.addWidget(self.glyphCellView)
         self.tabWidget.currentTabChanged.connect(self._tabChanged)
-        self.tabWidget.tabRemoved.connect(
-            lambda index: self.stackWidget.removeWidget(self.stackWidget.widget(index))
-        )
+        self.tabWidget.tabRemoved.connect(self._removeStackWidget)
         self.stackWidget.currentChanged.connect(self._widgetChanged)
 
         self.propertiesView = PropertiesView(font, self)
@@ -174,8 +178,11 @@ class FontWindow(BaseWindow):
             ("Ctrl+D", self.deselect),
             (platformSpecific.closeKeySequence(), self.closeGlyphTab),
             # XXX: does this really not warrant widget focus?
-            (QKeySequence.Delete, self.delete),
-            ("Shift+" + QKeySequence(QKeySequence.Delete).toString(), self.delete),
+            (QKeySequence.StandardKey.Delete, self.delete),
+            (
+                "Shift+" + QKeySequence(QKeySequence.StandardKey.Delete).toString(),
+                self.delete,
+            ),
             ("Z", lambda: self.zoom(1)),
             ("X", lambda: self.zoom(-1)),
         ]
@@ -367,10 +374,10 @@ class FontWindow(BaseWindow):
     def maybeSaveBeforeExit(self):
         if self._font.dirty:
             ret = CloseMessageBox.getCloseDocument(self, self.fontTitle())
-            if ret == QMessageBox.Save:
+            if ret == QMessageBox.StandardButton.Save:
                 self.saveFile()
                 return True
-            elif ret == QMessageBox.Discard:
+            elif ret == QMessageBox.StandardButton.Discard:
                 return True
             return False
         return True
@@ -427,6 +434,15 @@ class FontWindow(BaseWindow):
         else:
             self.glyphCellView.setCellSize(size)
 
+    def _removeStackWidget(self, index):
+        widget = self.stackWidget.widget(index)
+        # tools may be parented to the tab widget being closed; reparent
+        # them away first so Qt doesn't destroy them along with it
+        for tool in self.toolBar.tools():
+            if tool.parent() is widget:
+                tool.setParent(None)
+        self.stackWidget.removeWidget(widget)
+
     def _tabChanged(self, index):
         self.statusBar.setShouldPropagateSize(not index)
         # we need to hide, then setParent, then show
@@ -436,7 +452,7 @@ class FontWindow(BaseWindow):
             for tool in self.toolBar.tools():
                 tool.setParent(newWidget)
         self.stackWidget.setCurrentIndex(index)
-        newWidget.setFocus(Qt.OtherFocusReason)
+        newWidget.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def _toolChanged(self, tool):
         widget = self.stackWidget.currentWidget()
@@ -584,9 +600,9 @@ class FontWindow(BaseWindow):
             directory = (
                 None
                 if state
-                else QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[
-                    0
-                ]
+                else QStandardPaths.standardLocations(
+                    QStandardPaths.StandardLocation.DocumentsLocation
+                )[0]
             )
         # TODO: switch to directory dlg on platforms that need it
         dialog = QFileDialog(
@@ -594,10 +610,10 @@ class FontWindow(BaseWindow):
         )
         if state:
             dialog.restoreState(state)
-        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
         if directory:
             dialog.setDirectory(directory)
-        ok = dialog.exec_()
+        ok = dialog.exec()
         settings.setSaveFileDialogState(dialog.saveState())
         if ok:
             nameFilter = dialog.selectedNameFilter()
@@ -856,13 +872,13 @@ class FontWindow(BaseWindow):
             glyph = widget.activeGlyph()
             # TODO: fuse more the two methods, they're similar and delete is
             # Cut except not putting in the clipboard
-            if modifiers & Qt.AltModifier:
+            if modifiers & Qt.KeyboardModifier.AltModifier:
                 deleteUISelection(glyph)
             else:
-                preserveShape = not modifiers & Qt.ShiftModifier
+                preserveShape = not modifiers & Qt.KeyboardModifier.ShiftModifier
                 removeUIGlyphElements(glyph, preserveShape)
         else:
-            erase = modifiers & Qt.ShiftModifier
+            erase = modifiers & Qt.KeyboardModifier.ShiftModifier
             if self._proceedWithDeletion(erase):
                 glyphs = widget.glyphsForIndexes(widget.selection())
                 for glyph in glyphs:
@@ -1099,16 +1115,16 @@ class FontWindow(BaseWindow):
         tr = self.tr("Delete") if erase else self.tr("Clear")
         text = self.tr("Do you want to %s selected glyphs?") % tr.lower()
         closeDialog = QMessageBox(
-            QMessageBox.Question,
+            QMessageBox.Icon.Question,
             "",
             self.tr("%s glyphs") % tr,
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             self,
         )
         closeDialog.setInformativeText(text)
         closeDialog.setModal(True)
-        ret = closeDialog.exec_()
-        if ret == QMessageBox.Yes:
+        ret = closeDialog.exec()
+        if ret == QMessageBox.StandardButton.Yes:
             return True
         return False
 
@@ -1152,7 +1168,7 @@ class FontWindow(BaseWindow):
             event.ignore()
 
     def event(self, event):
-        if event.type() == QEvent.WindowActivate:
+        if event.type() == QEvent.Type.WindowActivate:
             app = QApplication.instance()
             app.setCurrentFontWindow(self)
             self._updateCurrentGlyph()

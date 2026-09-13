@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QSize, pyqtSignal
-from PyQt5.QtGui import QColor, QKeySequence, QPainter
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtCore import QSize, Signal
+from PySide6.QtGui import QColor, QKeySequence, QPainter
+from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 
 from trufont.controls.pathButton import PathButton
 
@@ -10,7 +10,7 @@ class ToolBar(QWidget):
     TODO: allow all orientations
     """
 
-    currentToolChanged = pyqtSignal(object)
+    currentToolChanged = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,7 +19,7 @@ class ToolBar(QWidget):
         self._currentTool = 0
         self._tools = []
 
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 12, 8, 12)
         layout.setSpacing(12)
@@ -74,7 +74,7 @@ class ToolBar(QWidget):
             btn.clicked.connect(self._buttonClicked)
             layout.addWidget(btn)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        spacer.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         layout.addWidget(spacer)
 
     def color(self):

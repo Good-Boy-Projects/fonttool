@@ -1,8 +1,8 @@
 from defcon import Anchor, Component, Glyph, Guideline
 from fontTools.pens.basePen import decomposeQuadraticSegment
-from PyQt5.QtCore import QPointF, QRectF, Qt
-from PyQt5.QtGui import QColor, QPainter, QPainterPath, QPalette
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPalette
+from PySide6.QtWidgets import (
     QApplication,
     QMenu,
     QRubberBand,
@@ -19,8 +19,14 @@ from trufont.tools.uiMethods import (
     unselectUIGlyphElements,
 )
 
-arrowKeys = (Qt.Key_Left, Qt.Key_Up, Qt.Key_Right, Qt.Key_Down)
-navKeys = (Qt.Key_Less, Qt.Key_Greater)
+# Qt.Key_* constants moved under the scoped Qt.Key enum in Qt6.
+arrowKeys = (
+    Qt.Key.Key_Left,
+    Qt.Key.Key_Up,
+    Qt.Key.Key_Right,
+    Qt.Key.Key_Down,
+)
+navKeys = (Qt.Key.Key_Less, Qt.Key.Key_Greater)
 
 _path = QPainterPath()
 _path.moveTo(15.33, 4.18)
@@ -247,18 +253,18 @@ class SelectionTool(BaseTool):
         key = event.key()
         modifiers = event.modifiers()
         dx, dy = 0, 0
-        if key == Qt.Key_Left:
+        if key == Qt.Key.Key_Left:
             dx = -1
-        elif key == Qt.Key_Up:
+        elif key == Qt.Key.Key_Up:
             dy = 1
-        elif key == Qt.Key_Right:
+        elif key == Qt.Key.Key_Right:
             dx = 1
-        elif key == Qt.Key_Down:
+        elif key == Qt.Key.Key_Down:
             dy = -1
-        if modifiers & Qt.ShiftModifier:
+        if modifiers & Qt.KeyboardModifier.ShiftModifier:
             dx *= 10
             dy *= 10
-            if modifiers & Qt.ControlModifier:
+            if modifiers & Qt.KeyboardModifier.ControlModifier:
                 dx *= 10
                 dy *= 10
         return (dx, dy)
@@ -340,7 +346,7 @@ class SelectionTool(BaseTool):
             menu.addAction(self.tr("Add Component…"), self._createComponent)
         menu.addAction(self.tr("Add Anchor"), self._createAnchor)
         menu.addAction(self.tr("Add Guideline"), self._createGuideline)
-        menu.exec_(self._cachedPos)
+        menu.exec(self._cachedPos)
         self._cachedPos = None
 
     def keyPressEvent(self, event):
@@ -352,7 +358,7 @@ class SelectionTool(BaseTool):
             kwargs = dict()
             if modifiers == platformSpecific.combinedModifiers():
                 kwargs["nudgePoints"] = True
-            elif modifiers & Qt.AltModifier:
+            elif modifiers & Qt.KeyboardModifier.AltModifier:
                 kwargs["slidePoints"] = True
             moveUIGlyphElements(self._glyph, dx, dy, **kwargs)
         # TODO: nav shouldn't be specific to this tool
@@ -362,11 +368,11 @@ class SelectionTool(BaseTool):
                 point, contour = pack
                 point.selected = False
                 index = contour.index(point)
-                offset = int(key == Qt.Key_Greater) or -1
+                offset = int(key == Qt.Key.Key_Greater) or -1
                 newPoint = contour.getPoint(index + offset)
                 newPoint.selected = True
                 contour.postNotification(notification="Contour.SelectionChanged")
-        elif key == Qt.Key_Return:
+        elif key == Qt.Key.Key_Return:
             self._glyph.beginUndoGroup()
             for contour in self._glyph:
                 for index, point in enumerate(contour):
@@ -383,11 +389,11 @@ class SelectionTool(BaseTool):
             self._glyph.endUndoGroup()
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             super().mousePressEvent(event)
             return
         widget = self.parent()
-        addToSelection = event.modifiers() & Qt.ControlModifier
+        addToSelection = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         self._glyph.beginUndoGroup()
         self._origin = self._prevPos = pos = self.magnetPos(event.localPos())
         self._mouseItem = widget.itemAt(self._origin)
@@ -406,7 +412,7 @@ class SelectionTool(BaseTool):
             if contour is not None:
                 contour.postNotification(notification="Contour.SelectionChanged")
         else:
-            action = "insert" if event.modifiers() & Qt.AltModifier else None
+            action = "insert" if event.modifiers() & Qt.KeyboardModifier.AltModifier else None
             segmentTuple = self._findSegmentUnderMouse(pos, action)
             if segmentTuple is not None:
                 segment, contour = segmentTuple
@@ -428,7 +434,7 @@ class SelectionTool(BaseTool):
         widget.update()
 
     def mouseMoveEvent(self, event):
-        if not event.buttons() & Qt.LeftButton:
+        if not event.buttons() & Qt.MouseButton.LeftButton:
             super().mouseMoveEvent(event)
             return
         if self._origin is None:
@@ -438,7 +444,7 @@ class SelectionTool(BaseTool):
         if self._shouldMove or self._mouseItem is not None:
             canvasPos = event.pos()
             modifiers = event.modifiers()
-            if modifiers & Qt.ShiftModifier:
+            if modifiers & Qt.KeyboardModifier.ShiftModifier:
                 # we clamp to the mouseDownPos, unless we have a
                 # single offCurve in which case we clamp it against
                 # its parent
@@ -464,7 +470,7 @@ class SelectionTool(BaseTool):
             kwargs = dict()
             if modifiers == platformSpecific.combinedModifiers():
                 kwargs["nudgePoints"] = True
-            elif modifiers & Qt.AltModifier:
+            elif modifiers & Qt.KeyboardModifier.AltModifier:
                 kwargs["slidePoints"] = True
             moveUIGlyphElements(glyph, dx, dy, **kwargs)
             self._prevPos = canvasPos
@@ -473,10 +479,10 @@ class SelectionTool(BaseTool):
             self._rubberBandRect = QRectF(self._origin, canvasPos).normalized()
             items = widget.items(self._rubberBandRect)
             points = {c[i] for c, i in items["points"]}
-            if event.modifiers() & Qt.ControlModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
                 points ^= self._oldSelection
             # TODO: fine-tune this more, maybe add optional args to items...
-            if event.modifiers() & Qt.AltModifier:
+            if event.modifiers() & Qt.KeyboardModifier.AltModifier:
                 points = {pt for pt in points if pt.segmentType}
             if points != self._glyph.selection:
                 # TODO: doing this takes more time than by-contour
@@ -485,7 +491,7 @@ class SelectionTool(BaseTool):
         widget.update()
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             # we changed glyph during this mouse press, skip special
             # processing,
             # (this would be a no-op except for unbalanced undo warning)
@@ -564,16 +570,20 @@ class SelectionTool(BaseTool):
             option.initFrom(widget)
             option.opaque = False
             option.rect = QRectF(widgetOrigin, widgetMove).toRect()
-            option.shape = QRubberBand.Rectangle
+            option.shape = QRubberBand.Shape.Rectangle
             painter.save()
-            painter.setRenderHint(QPainter.Antialiasing, False)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
             painter.resetTransform()
-            widget.style().drawControl(QStyle.CE_RubberBand, option, painter, widget)
+            widget.style().drawControl(
+                QStyle.ControlElement.CE_RubberBand, option, painter, widget
+            )
             painter.restore()
         else:
-            highlight = widget.palette().color(QPalette.Active, QPalette.Highlight)
+            highlight = widget.palette().color(
+                QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight
+            )
             painter.save()
-            painter.setRenderHint(QPainter.Antialiasing, False)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
             pen = painter.pen()
             pen.setColor(highlight.darker(120))
             pen.setWidth(0)

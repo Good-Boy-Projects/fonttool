@@ -3,9 +3,9 @@ The *colorVignette* submodule
 -----------------------------
 """
 
-from PyQt5.QtCore import QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import (
     QColorDialog,
     QSizePolicy,
     QStyle,
@@ -30,12 +30,12 @@ class ColorVignette(QWidget):
     .. _QWidget: http://doc.qt.io/qt-5/qwidget.html
     """
 
-    colorChanged = pyqtSignal()
+    colorChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self._color = None
         self._margins = (0, 2, 0, -2)
         self._mayClearColor = True
@@ -52,8 +52,8 @@ class ColorVignette(QWidget):
         if self._readOnly:
             return
         dialog = QColorDialog(self._color)
-        dialog.setOptions(QColorDialog.ShowAlphaChannel)
-        ok = dialog.exec_()
+        dialog.setOptions(QColorDialog.ColorDialogOption.ShowAlphaChannel)
+        ok = dialog.exec()
         if ok:
             self.setColor(dialog.currentColor())
             self.colorChanged.emit()
@@ -126,8 +126,8 @@ class ColorVignette(QWidget):
     # events
 
     def keyPressEvent(self, event):
-        if event.key() & Qt.Key_Return:
-            if self._mayClearColor and event.modifiers() & Qt.AltModifier:
+        if event.key() & Qt.Key.Key_Return:
+            if self._mayClearColor and event.modifiers() & Qt.KeyboardModifier.AltModifier:
                 self.setColor(None)
             else:
                 self.pickColor()
@@ -135,7 +135,7 @@ class ColorVignette(QWidget):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
-        if self._mayClearColor and event.modifiers() & Qt.AltModifier:
+        if self._mayClearColor and event.modifiers() & Qt.KeyboardModifier.AltModifier:
             self.setColor(None)
         else:
             super().mousePressEvent(event)
@@ -146,13 +146,13 @@ class ColorVignette(QWidget):
     def initStyleOption(self, option):
         option.initFrom(self)
         option.lineWidth = self.style().pixelMetric(
-            QStyle.PM_DefaultFrameWidth, option, self
+            QStyle.PixelMetric.PM_DefaultFrameWidth, option, self
         )
         option.midLineWidth = 0
         option.rect = option.rect.adjusted(*self._margins)
-        option.state |= QStyle.State_Sunken
+        option.state |= QStyle.StateFlag.State_Sunken
         if self._readOnly:
-            option.state |= QStyle.State_ReadOnly
+            option.state |= QStyle.StateFlag.State_ReadOnly
 
     def paint(self, painter, rect):
         panel = QStyleOptionFrame()
@@ -160,9 +160,9 @@ class ColorVignette(QWidget):
         style = self.style()
         # use PE_PanelLineEdit instead of static PE_Frame to have hover/focus
         # animation
-        style.drawPrimitive(QStyle.PE_PanelLineEdit, panel, painter, self)
-        rect = style.subElementRect(QStyle.SE_FrameContents, panel, self)
-        painter.fillRect(rect, Qt.white)
+        style.drawPrimitive(QStyle.PrimitiveElement.PE_PanelLineEdit, panel, painter, self)
+        rect = style.subElementRect(QStyle.SubElement.SE_FrameContents, panel, self)
+        painter.fillRect(rect, Qt.GlobalColor.white)
         innerRect = rect.adjusted(2, 2, -2, -2)
         if self._color is not None:
             painter.fillRect(innerRect, self._color)
@@ -171,7 +171,7 @@ class ColorVignette(QWidget):
             pen.setColor(strikeColor)
             pen.setWidthF(1.5)
             painter.setPen(pen)
-            painter.setRenderHint(QStylePainter.Antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.setClipRect(innerRect)
             bL = innerRect.bottomLeft()
             bL.setY(int(bL.y() + 0.5))

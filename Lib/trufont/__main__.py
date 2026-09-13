@@ -1,9 +1,9 @@
 import os
 import sys
 
-from PyQt5.QtCore import QCommandLineParser, QLibraryInfo, QLocale, Qt, QTranslator
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QCommandLineParser, QLibraryInfo, QLocale, Qt, QTranslator
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication
 
 from defconQt import representationFactories as baseRepresentationFactories
 from trufont import __version__, representationFactories
@@ -24,20 +24,27 @@ def main():
     # register representation factories
     baseRepresentationFactories.registerAllFactories()
     representationFactories.registerAllFactories()
+
     if hasattr(Qt, "AA_EnableHighDpiScaling"):
         QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+
     platformSpecific.setAppName()
+
     # initialize the app
     app = Application(sys.argv)
+
     app.setOrganizationName("TruFont")
     app.setOrganizationDomain("trufont.github.io")
     app.setApplicationName("TruFont")
     app.setApplicationVersion(__version__)
+
     app.setWindowIcon(QIcon(":app.png"))
+
     app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     appFont = platformSpecific.UIFontOverride()
     if appFont is not None:
         app.setFont(appFont)
+
     app.setStyleSheet(platformSpecific.appStyleSheet())
 
     # Install stream redirection
@@ -47,7 +54,7 @@ def main():
     qtTranslator = QTranslator()
     qtTranslator.load(
         "qt_" + QLocale.system().name(),
-        QLibraryInfo.location(QLibraryInfo.TranslationsPath),
+        QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath),
     )
     app.installTranslator(qtTranslator)
 
@@ -70,10 +77,12 @@ def main():
         QApplication.translate("Command-line parser", "The UFO files to open."),
     )
     parser.process(app)
+
     # load menu
     if platformSpecific.useGlobalMenuBar():
         app.fetchMenuBar()
         app.setQuitOnLastWindowClosed(False)
+
     # bootstrap extensions
     folder = app.getExtensionsDirectory()
     for file in os.listdir(folder):
@@ -91,6 +100,7 @@ def main():
             errorReports.showWarningException(e, msg)
             continue
         app.registerExtension(extension)
+
     # process files
     args = parser.positionalArguments()
     if not args:
@@ -103,6 +113,7 @@ def main():
     else:
         for fontPath in args:
             app.openFile(fontPath)
+
     # if we did not open a font, spawn new font or go headless
     if not app.allFonts():
         if platformSpecific.shouldSpawnDocument():
@@ -112,7 +123,8 @@ def main():
             # without opening any window. Since Qt infers new menu bar on
             # focus change, fire the signal.
             app.focusWindowChanged.emit(None)
-    sys.exit(app.exec_())
+
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":

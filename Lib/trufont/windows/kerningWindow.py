@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QAbstractItemModel, QModelIndex, QSize, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QTreeView, QVBoxLayout, QWidget
+from PySide6.QtCore import QAbstractItemModel, QModelIndex, QSize, Qt
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QHeaderView, QTreeView, QVBoxLayout, QWidget
 
 from trufont.objects import settings
 
@@ -32,14 +32,14 @@ class KerningDictModel(QAbstractItemModel):
         if not index.isValid():
             return None
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             key = index.internalPointer()
             if key is None:
                 if index.column() > 0:
                     return None
                 return self._keys[index.row()]
             return self._data[key][index.row()][index.column()]
-        elif role == Qt.ForegroundRole:
+        elif role == Qt.ItemDataRole.ForegroundRole:
             data = index.data()
             if isinstance(data, str) and data.startswith("@"):
                 return QColor(5, 5, 96)
@@ -78,7 +78,7 @@ class KerningDictModel(QAbstractItemModel):
 
 class KerningWindow(QWidget):
     def __init__(self, font, parent=None):
-        super().__init__(parent, Qt.Window)
+        super().__init__(parent, Qt.WindowType.Window)
         self._font = font
         self._font.kerning.addObserver(self, "_kerningChanged", "Kerning.Changed")
         self._font.info.addObserver(self, "_fontInfoChanged", "Info.Changed")
@@ -86,10 +86,10 @@ class KerningWindow(QWidget):
         self.kerningView.setModel(KerningDictModel(font.kerning, self.kerningView))
         self.kerningView.expandAll()
         metrics = self.kerningView.fontMetrics()
-        self.kerningView.setColumnWidth(1, 8 * metrics.width("0"))
+        self.kerningView.setColumnWidth(1, 8 * metrics.horizontalAdvance("0"))
         hdr = self.kerningView.header()
         hdr.setStretchLastSection(False)
-        hdr.setSectionResizeMode(0, hdr.Stretch)
+        hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         hdr.hide()
 
         layout = QVBoxLayout(self)

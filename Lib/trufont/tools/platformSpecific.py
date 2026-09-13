@@ -1,8 +1,8 @@
 import os
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QKeySequence
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QKeySequence
 
 # -----------
 # File dialog
@@ -51,30 +51,37 @@ def altRedoSequence():
 def closeKeySequence():
     if sys.platform == "win32":
         return "Ctrl+W"
-    return QKeySequence.Close
+    return QKeySequence.StandardKey.Close
 
 
 def previousTabSequence():
     if sys.platform == "win32":
         return "Ctrl+Shift+Tab"
-    return QKeySequence.PreviousChild
+    return QKeySequence.StandardKey.PreviousChild
 
 
 def combinedModifiers():
     # on Windows, Ctrl+Alt is reserved by the system. use WinKey+Alt
     if sys.platform == "win32":
-        return Qt.MetaModifier | Qt.AltModifier
-    return Qt.ControlModifier | Qt.AltModifier
+        return Qt.KeyboardModifier.MetaModifier | Qt.KeyboardModifier.AltModifier
+    return Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier
 
 
 def isDeleteEvent(event):
-    if event.matches(QKeySequence.Delete):
+    if event.matches(QKeySequence.StandardKey.Delete):
         return True
-    if sys.platform == "darwin" and event.key() == Qt.Key_Backspace:
+    if sys.platform == "darwin" and event.key() == Qt.Key.Key_Backspace:
         return True
     modifiers = event.modifiers()
-    if modifiers & Qt.ShiftModifier or modifiers & Qt.AltModifier:
-        modifiers_ = modifiers & ~Qt.ShiftModifier & ~Qt.AltModifier
+    if (
+        modifiers & Qt.KeyboardModifier.ShiftModifier
+        or modifiers & Qt.KeyboardModifier.AltModifier
+    ):
+        modifiers_ = (
+            modifiers
+            & ~Qt.KeyboardModifier.ShiftModifier
+            & ~Qt.KeyboardModifier.AltModifier
+        )
         event_ = event.__class__(
             event.type(),
             event.key(),
@@ -83,7 +90,7 @@ def isDeleteEvent(event):
             event.isAutoRepeat(),
             event.count(),
         )
-        return event_.matches(QKeySequence.Delete)
+        return event_.matches(QKeySequence.StandardKey.Delete)
     return False
 
 

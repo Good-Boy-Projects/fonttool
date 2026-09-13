@@ -18,8 +18,8 @@ from defcon import Color
 from fontTools.misc.transform import Identity
 from fontTools.pens.qtPen import QtPen
 from fontTools.pens.transformPen import TransformPen
-from PyQt5.QtCore import QLineF, QPointF, QRectF, Qt
-from PyQt5.QtGui import (
+from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
+from PySide6.QtGui import (
     QBrush,
     QColor,
     QPainter,
@@ -28,7 +28,7 @@ from PyQt5.QtGui import (
     QPixmap,
     QTransform,
 )
-from PyQt5.QtWidgets import QApplication, QGraphicsPixmapItem, QGraphicsScene
+from PySide6.QtWidgets import QApplication, QGraphicsPixmapItem, QGraphicsScene
 
 # ------
 # Colors
@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QApplication, QGraphicsPixmapItem, QGraphicsScene
 _defaultColors = dict(
     # General
     # -------
-    background=QColor(Qt.white),
+    background=QColor(Qt.GlobalColor.white),
     # Font
     # ----
     # vertical metrics
@@ -77,7 +77,7 @@ def applyEffectToPixmap(pixmap, effect):
     item.setGraphicsEffect(effect)
     scene.addItem(item)
     res = QPixmap(pixmap.size())
-    res.fill(Qt.transparent)
+    res.fill(Qt.GlobalColor.transparent)
     painter = QPainter(res)
     scene.render(painter)
     return res
@@ -90,7 +90,7 @@ def colorToQColor(color):
     TODO: Color lacks online documentation.
 
     .. _Color: https://github.com/typesupply/defcon/blob/ufo3/Lib/defcon/objects/color.py
-    .. _QColor: http://doc.qt.io/qt-5/qcolor.html
+    .. _QColor: http://doc.qt.io/qt-6/qcolor.html
     """
     r, g, b, a = Color(color)
     return QColor.fromRgbF(r, g, b, a)
@@ -102,7 +102,7 @@ def defaultColor(name):
 
     TODO: name list?
 
-    .. _QColor: http://doc.qt.io/qt-5/qcolor.html
+    .. _QColor: http://doc.qt.io/qt-6/qcolor.html
     """
     return _defaultColors[name]
 
@@ -134,7 +134,10 @@ def rectanglePath(x, y, size):
 
 def trianglePath(x, y, size, angle):
     thirdSize = size / 3
-    pen = QtPen({})
+    # Explicit path= so fontTools.pens.qtPen.QtPen doesn't fall back to its
+    # internal `from PyQt5.QtGui import QPainterPath` (see qPainterPathFactory
+    # and glyphViewFactory ports for the same fix).
+    pen = QtPen({}, path=QPainterPath())
     tPen = TransformPen(pen, Identity.rotate(angle))
     tPen.moveTo((-thirdSize, size))
     tPen.lineTo((-thirdSize, -size))
@@ -156,12 +159,12 @@ def drawLine(painter, x1, y1, x2, y2, lineWidth=0):
     Compared to the built-in ``painter.drawLine(…)`` method, this will disable
     antialiasing for horizontal/vertical lines.
 
-    .. _`cosmetic pen`: http://doc.qt.io/qt-5/qpen.html#isCosmetic
-    .. _QPainter: http://doc.qt.io/qt-5/qpainter.html
+    .. _`cosmetic pen`: http://doc.qt.io/qt-6/qpen.html#isCosmetic
+    .. _QPainter: http://doc.qt.io/qt-6/qpainter.html
     """
     painter.save()
     if x1 == x2 or y1 == y2:
-        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
     pen = painter.pen()
     pen.setWidthF(lineWidth)
     painter.setPen(pen)
@@ -182,13 +185,14 @@ def drawTextAtPoint(
 
     TODO: support LTR http://stackoverflow.com/a/24831796/2037879
 
-    .. _QPainter: http://doc.qt.io/qt-5/qpainter.html
+    .. _QPainter: http://doc.qt.io/qt-6/qpainter.html
     """
     fM = painter.fontMetrics()
     lines = text.splitlines()
     lineSpacing = fM.lineSpacing()
     if xAlign != "left" or yAlign != "bottom":
-        width = scale * max(fM.width(line) for line in lines)
+        # QFontMetrics.width() was removed in Qt6 in favor of horizontalAdvance()
+        width = scale * max(fM.horizontalAdvance(line) for line in lines)
         height = scale * len(lines) * lineSpacing
         if xAlign == "center":
             x -= width / 2
@@ -217,13 +221,13 @@ def drawTiles(painter, rect, tileSize=6, color=None, backgroundColor=None):
     sz = 2 * tileSize
     tiledPixmap = QPixmap(sz, sz)
     pixmapPainter = QPainter(tiledPixmap)
-    pixmapPainter.setPen(Qt.NoPen)
-    pixmapPainter.setBrush(Qt.Dense4Pattern)
+    pixmapPainter.setPen(Qt.PenStyle.NoPen)
+    pixmapPainter.setBrush(Qt.BrushStyle.Dense4Pattern)
     brush = pixmapPainter.brush()
     brush.setColor(color)
     pixmapPainter.setBrush(brush)
     pixmapPainter.setBackground(QBrush(backgroundColor))
-    pixmapPainter.setBackgroundMode(Qt.OpaqueMode)
+    pixmapPainter.setBackgroundMode(Qt.BGMode.OpaqueMode)
     pixmapPainter.scale(tileSize, tileSize)
     pixmapPainter.drawRect(tiledPixmap.rect())
     pixmapPainter.end()
@@ -246,10 +250,10 @@ def drawFontGuidelines(
     *painter*.
 
     *rect* specifies the rectangle which the lines will be drawn in (usually,
-    that of the glyph’s advance width).
+    that of the glyph's advance width).
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
-    .. _QPainter: http://doc.qt.io/qt-5/qpainter.html
+    .. _QPainter: http://doc.qt.io/qt-6/qpainter.html
     """
     if not (drawLines or drawText):
         return
@@ -369,7 +373,7 @@ def _drawGuidelines(
 
 def drawFontPostscriptBlues(painter, glyph, scale, color=None):
     """
-    Draws a Glyph_ *glyph*’s blue values.
+    Draws a Glyph_ *glyph*'s blue values.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """
@@ -390,7 +394,7 @@ def drawFontPostscriptBlues(painter, glyph, scale, color=None):
 
 def drawFontPostscriptFamilyBlues(painter, glyph, scale, color=None):
     """
-    Draws a Glyph_ *glyph*’s family blue values.
+    Draws a Glyph_ *glyph*'s family blue values.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """
@@ -419,7 +423,7 @@ def _drawBlues(painter, glyph, blues, color):
 
 def drawGlyphImage(painter, glyph, scale):
     """
-    Draws a Glyph_ *glyph*’s image.
+    Draws a Glyph_ *glyph*'s image.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """
@@ -456,7 +460,7 @@ def drawGlyphMetrics(
     and text if *drawText* is true using QPainter_ *painter*.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
-    .. _QPainter: http://doc.qt.io/qt-5/qpainter.html
+    .. _QPainter: http://doc.qt.io/qt-6/qpainter.html
     """
     font = glyph.font
     if font is None:
@@ -469,7 +473,7 @@ def drawGlyphMetrics(
     pen = QPen(color)
     pen.setWidth(0)
     painter.setPen(pen)
-    painter.setRenderHint(QPainter.Antialiasing, False)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
     # metrics
     metrics = [
         font.info.descender or -250,
@@ -540,7 +544,7 @@ def drawGlyphFillAndStroke(
     componentStrokeColor=None,
 ):
     """
-    Draws a Glyph_ *glyph* contours’ fill and stroke.
+    Draws a Glyph_ *glyph* contours' fill and stroke.
 
     Component fill is always drawn, component stroke is drawn if
     *componentStrokeColor* is not None.
@@ -617,7 +621,7 @@ def drawGlyphPoints(
     backgroundColor=None,
 ):
     """
-    Draws a Glyph_ *glyph*’s points.
+    Draws a Glyph_ *glyph*'s points.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """
@@ -774,7 +778,7 @@ def drawGlyphAnchors(
     painter, glyph, scale, drawAnchors=True, drawText=True, color=None
 ):
     """
-    Draws a Glyph_ *glyph*’s anchors.
+    Draws a Glyph_ *glyph*'s anchors.
 
     .. _Glyph: http://ts-defcon.readthedocs.org/en/ufo3/objects/glyph.html
     """

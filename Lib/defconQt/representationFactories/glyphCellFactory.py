@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QFontMetrics, QPainter, QPainterPath, QPixmap
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QFontMetrics, QPainter, QPainterPath, QPixmap
 
 from defconQt.tools import platformSpecific
 from defconQt.tools.drawing import colorToQColor
@@ -113,9 +113,9 @@ class GlyphCellFactoryDrawingController:
     def getPixmap(self):
         pixmap = QPixmap(self.width * self.pixelRatio, self.height * self.pixelRatio)
         pixmap.setDevicePixelRatio(self.pixelRatio)
-        pixmap.fill(Qt.transparent)
+        pixmap.fill(Qt.GlobalColor.transparent)
         painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.translate(0, self.height)
         painter.scale(1, -1)
         if self.headerAtBottom:
@@ -206,7 +206,7 @@ class GlyphCellFactoryDrawingController:
 
         painter.save()
         painter.setPen(cellMetricsFillColor)
-        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         painter.drawLine(left, lo, left, hi)
         painter.drawLine(right, lo, right, hi)
         painter.restore()
@@ -227,7 +227,7 @@ class GlyphCellFactoryDrawingController:
         }
         painter.save()
         painter.setPen(cellMetricsLineColor)
-        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         for y in lines:
             if y is None:
                 continue
@@ -246,13 +246,13 @@ class GlyphCellFactoryDrawingController:
                 if layer.color is not None:
                     layerColor = colorToQColor(layer.color)
                 if layerColor is None:
-                    layerColor = Qt.black
+                    layerColor = Qt.GlobalColor.black
                 glyph = layer[self.glyph.name]
                 path = glyph.getRepresentation("defconQt.QPainterPath")
                 painter.fillPath(path, layerColor)
         else:
             path = self.glyph.getRepresentation("defconQt.QPainterPath")
-            painter.fillPath(path, Qt.black)
+            painter.fillPath(path, Qt.GlobalColor.black)
 
     def drawCellForeground(self, painter, rect):
         pass
@@ -265,7 +265,7 @@ class GlyphCellFactoryDrawingController:
         elif self.glyph.dirty:
             color = cellDirtyColor
         else:
-            color = Qt.white
+            color = Qt.GlobalColor.white
         painter.fillRect(xMin, yMin, width, height, color)
 
     def drawCellHeaderText(self, painter, rect):
@@ -275,12 +275,18 @@ class GlyphCellFactoryDrawingController:
 
         painter.setFont(headerFont)
         painter.setPen(cellMetricsTextColor)
-        name = metrics.elidedText(self.glyph.name, Qt.ElideRight, width - 2)
+        name = metrics.elidedText(
+            self.glyph.name, Qt.TextElideMode.ElideRight, width - 2
+        )
         painter.drawText(
             1,
             0,
             width - 2,
             height - minOffset,
-            int(Qt.TextSingleLine | Qt.AlignCenter | Qt.AlignBottom),
+            int(
+                Qt.TextFlag.TextSingleLine
+                | Qt.AlignmentFlag.AlignCenter
+                | Qt.AlignmentFlag.AlignBottom
+            ),
             name,
         )

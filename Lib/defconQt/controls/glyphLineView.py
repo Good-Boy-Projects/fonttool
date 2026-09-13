@@ -9,9 +9,9 @@ The *glyphLineView* submodule provides widgets that render a list of Glyph_ or
 """
 
 from defcon import Glyph
-from PyQt5.QtCore import QRectF, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPainter, QPalette
-from PyQt5.QtWidgets import QScrollArea, QSizePolicy, QWidget
+from PySide6.QtCore import QRectF, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPalette
+from PySide6.QtWidgets import QScrollArea, QSizePolicy, QWidget
 
 from defconQt.controls.glyphCellView import cellGridColor
 from defconQt.tools import drawing, platformSpecific
@@ -29,15 +29,15 @@ class GlyphLineWidget(QWidget):
     # TODO: drag and drop
     """
 
-    glyphActivated = pyqtSignal(Glyph)
-    pointSizeModified = pyqtSignal(int)
-    selectionModified = pyqtSignal(object)  # Note: object because it can be None
+    glyphActivated = Signal(Glyph)
+    pointSizeModified = Signal(int)
+    selectionModified = Signal(object)  # Note: object because it can be None
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_OpaquePaintEvent)
-        self.setFocusPolicy(Qt.ClickFocus)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
         self._showLayers = False
         self._layerDrawingAttributes = {}
@@ -69,8 +69,8 @@ class GlyphLineWidget(QWidget):
         self._rightToLeft = False
         self._wrapLines = False
 
-        self._backgroundColor = Qt.white
-        self._glyphColor = Qt.black
+        self._backgroundColor = Qt.GlobalColor.white
+        self._glyphColor = Qt.GlobalColor.black
         self._glyphSelectionColor = None
         self._metricsColor = cellGridColor
         self._notdefBackgroundColor = QColor(255, 204, 204)
@@ -350,11 +350,11 @@ class GlyphLineWidget(QWidget):
         scrollArea = self._scrollArea
         if scrollArea is not None:
             if value:
-                scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+                scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
             else:
-                scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-                scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+                scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+                scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.adjustSize()
         self.update()
 
@@ -453,7 +453,7 @@ class GlyphLineWidget(QWidget):
     # ------------
 
     def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             if self._selected is not None:
                 glyphRecord = self._glyphRecords[self._selected]
                 self.glyphActivated.emit(glyphRecord.glyph)
@@ -552,15 +552,15 @@ class GlyphLineWidget(QWidget):
                 selectionColor = self._glyphSelectionColor
             else:
                 palette = self.palette()
-                active = palette.currentColorGroup() != QPalette.Inactive
+                active = palette.currentColorGroup() != QPalette.ColorGroup.Inactive
                 opacityMultiplier = platformSpecific.colorOpacityMultiplier()
-                selectionColor = palette.color(QPalette.Highlight)
+                selectionColor = palette.color(QPalette.ColorRole.Highlight)
                 selectionColor.setAlphaF(0.2 * opacityMultiplier if active else 0.9)
             xMin, yMin, width, height = rect
             painter.save()
             if self._drawMetrics:
                 pen = painter.pen()
-                pen.setStyle(Qt.DotLine)
+                pen.setStyle(Qt.PenStyle.DotLine)
                 pen.setColor(self._metricsColor)
                 painter.setPen(pen)
                 drawing.drawLine(painter, xMin, yMin, xMin, yMin + height)
@@ -666,7 +666,7 @@ class GlyphLineWidget(QWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_Return:
+        if key == Qt.Key.Key_Return:
             index = self._selected
             if index is not None:
                 glyph = self._glyphRecords[index].glyph
@@ -675,7 +675,7 @@ class GlyphLineWidget(QWidget):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             selected = None
             for rect, recordIndex in self._glyphRecordsRects.items():
                 if QRectF(*rect).contains(event.localPos()):
@@ -690,7 +690,7 @@ class GlyphLineWidget(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         # TODO: we could possibly redo rects only on adjustSize()
         if self._rightToLeft:
             self.paintRightToLeft(painter, event.rect())
@@ -888,8 +888,8 @@ class GlyphLineView(QScrollArea):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
 
         self._applyKerning = False

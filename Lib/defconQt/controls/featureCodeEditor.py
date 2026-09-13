@@ -10,8 +10,8 @@ and a corresponding syntax highlighter.
 
 import os
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QTextCharFormat, QTextCursor
 
 from defconQt.controls.baseCodeEditor import BaseCodeEditor, BaseCodeHighlighter
 
@@ -145,34 +145,37 @@ class FeatureCodeEditor(BaseCodeEditor):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_Return:
+        if key == Qt.Key.Key_Return:
             cursor = self.textCursor()
             indentLvl = self.findLineIndentLevel()
             newBlock = False
 
             pos = cursor.position()
-            cursor.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.MoveOperation.PreviousCharacter,
+                QTextCursor.MoveMode.KeepAnchor,
+            )
             if cursor.selectedText() == self.openBlockDelimiter:
                 # We don't add a closing tag if there is text right
                 # below with the same indentation level because in
                 # that case the user might just be looking to add a
                 # new line
-                ok = cursor.movePosition(QTextCursor.Down)
+                ok = cursor.movePosition(QTextCursor.MoveOperation.Down)
                 if ok:
                     downIndentLvl = self.findLineIndentLevel(cursor)
-                    cursor.select(QTextCursor.LineUnderCursor)
+                    cursor.select(QTextCursor.SelectionType.LineUnderCursor)
                     if (
                         cursor.selectedText().strip() == ""
                         or downIndentLvl <= indentLvl
                     ):
                         newBlock = True
-                    cursor.movePosition(QTextCursor.Up)
+                    cursor.movePosition(QTextCursor.MoveOperation.Up)
                 else:
                     newBlock = True
                 indentLvl += 1
 
             if newBlock:
-                cursor.select(QTextCursor.LineUnderCursor)
+                cursor.select(QTextCursor.SelectionType.LineUnderCursor)
                 txt = cursor.selectedText().lstrip(" ").split(" ")
                 if len(txt) > 1:
                     if len(txt) < 3 and txt[-1][-1] == self.openBlockDelimiter:
@@ -193,8 +196,8 @@ class FeatureCodeEditor(BaseCodeEditor):
                     (newLineSpace[: -len(self._indent)], "} ", feature, ";")
                 )
                 cursor.insertText(newLineSpace)
-                cursor.movePosition(QTextCursor.Up)
-                cursor.movePosition(QTextCursor.EndOfLine)
+                cursor.movePosition(QTextCursor.MoveOperation.Up)
+                cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
                 self.setTextCursor(cursor)
             cursor.endEditBlock()
         else:

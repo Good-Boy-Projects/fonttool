@@ -1,8 +1,8 @@
 import os
 
-from PyQt5.QtCore import QDir, QFileSystemWatcher, QSize, QStandardPaths, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QDir, QFileSystemWatcher, QSize, QStandardPaths, Qt
+from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
     QDialogButtonBox,
@@ -23,12 +23,12 @@ from trufont.objects import icons, settings
 
 class ExportDialog(QDialog):
     def __init__(self, font, parent=None):
-        super().__init__(parent, Qt.MSWindowsFixedSizeDialogHint)
-        self.setWindowModality(Qt.WindowModal)
+        super().__init__(parent, Qt.WindowType.MSWindowsFixedSizeDialogHint)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Export…"))
 
         self._exportDirectory = QDir.toNativeSeparators(
-            QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
+            QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]
         )
         self.baseName = getAttrWithFallback(font.info, "postscriptFontName")
 
@@ -54,7 +54,7 @@ class ExportDialog(QDialog):
         self.exportBox.setText(self.tr("Use Export Directory"))
         self.exportBox.setChecked(True)
         self.exportIcon = QLabel(self)
-        icon = self.style().standardIcon(QStyle.SP_DirClosedIcon)
+        icon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirClosedIcon)
         iconSize = QSize(24, 24)
         self.exportIcon.setPixmap(icon.pixmap(icon.actualSize(iconSize)))
         self.exportIcon.setBaseSize(iconSize)
@@ -81,8 +81,8 @@ class ExportDialog(QDialog):
         self.warningLabel = QLabel(self)
         palette = self.warningLabel.palette()
         role, color = self.warningLabel.foregroundRole(), QColor(230, 20, 20)
-        palette.setColor(palette.Active, role, color)
-        palette.setColor(palette.Inactive, role, color)
+        palette.setColor(QPalette.ColorGroup.Active, role, color)
+        palette.setColor(QPalette.ColorGroup.Inactive, role, color)
         self.warningLabel.setPalette(palette)
         sp = self.warningLabel.sizePolicy()
         sp.setRetainSizeWhenHidden(True)
@@ -96,8 +96,8 @@ class ExportDialog(QDialog):
         self.updateNumbers()
         self.watcher.directoryChanged.connect(self.updateNumbers)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Cancel)
-        buttonBox.addButton(self.tr("Generate…"), QDialogButtonBox.AcceptRole)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
+        buttonBox.addButton(self.tr("Generate…"), QDialogButtonBox.ButtonRole.AcceptRole)
         buttonBox.accepted.connect(self.finish)
         buttonBox.rejected.connect(self.reject)
 
@@ -200,11 +200,11 @@ class ExportDialog(QDialog):
             dialog.setDirectory(givenDir)
         elif dialogDir is None:
             dialog.setDirectory(
-                QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
+                QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]
             )
-        dialog.setAcceptMode(QFileDialog.AcceptOpen)
-        dialog.setFileMode(QFileDialog.Directory)
-        ok = dialog.exec_()
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        ok = dialog.exec()
         exportDir = QDir.toNativeSeparators(dialog.directory().absolutePath())
         if givenDir is not None:
             dialog.setDirectory(dialogDir)
@@ -261,7 +261,7 @@ class ExportDialog(QDialog):
     @classmethod
     def getExportParameters(cls, parent, font):
         dialog = cls(font, parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         params = dict(
             baseName=dialog.baseName,
             formats=dialog.formatBtnSet.selectedOptions(),

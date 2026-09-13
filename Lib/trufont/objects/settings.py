@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 
 from defcon import Color
-from PyQt5.QtCore import QByteArray, QSettings
-from PyQt5.QtGui import QColor
+from PySide6.QtCore import QByteArray, QSettings
+from PySide6.QtGui import QColor
 
 from defconQt.tools.drawing import colorToQColor
 
@@ -245,6 +245,12 @@ def value(key, fallback=None, type=None):
             type = _type(fallback[0])
         else:
             type = _type(fallback)
+    # PySide6's QSettings.value() only accepts a narrow set of types
+    # ('list', 'bytes', 'str', 'int', 'float', 'bool', or a Qt-derived
+    # type) for its `type` parameter, unlike PyQt5. dict round-trips fine
+    # through QSettings on its own, so omit the type argument for it.
+    if type is dict:
+        return settings.value(key, fallback)
     return settings.value(key, fallback, type)
 
 
@@ -311,7 +317,7 @@ def setPropertiesHidden(value):
 
 
 def drawingAttributes():
-    return value("fontWindow/drawingAttributes", type=dict)
+    return value("fontWindow/drawingAttributes", {}, dict)
 
 
 def setDrawingAttributes(drawingAttributes):

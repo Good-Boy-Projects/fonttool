@@ -3,7 +3,7 @@ UI-constrained point management methods.
 """
 import itertools
 
-from PyQt5.QtCore import QLineF, QPointF
+from PySide6.QtCore import QLineF, QPointF
 
 from trufont.tools import bezierMath
 from trufont.tools.UIMove_ng import UIMove

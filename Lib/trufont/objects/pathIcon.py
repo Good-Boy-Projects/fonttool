@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QPoint, QRect, QSize, Qt
-from PyQt5.QtGui import QIcon, QIconEngine, QPainter, QPixmap
+from PySide6.QtCore import QPoint, QRect, QSize, Qt
+from PySide6.QtGui import QIcon, QIconEngine, QPainter, QPixmap
 
 
 class PathIconEngine(QIconEngine):
@@ -15,11 +15,13 @@ class PathIconEngine(QIconEngine):
             size = QSize(width, height)
         self._size = size
 
-    def addFillPath(self, path, color=Qt.black, antialiasing=False):
+    def addFillPath(self, path, color=Qt.GlobalColor.black, antialiasing=False):
         # TODO: add Mode, State
         self._fillPaths.append((path, color, antialiasing))
 
-    def addStrokePath(self, path, color=Qt.black, width=0.9, antialiasing=False):
+    def addStrokePath(
+        self, path, color=Qt.GlobalColor.black, width=0.9, antialiasing=False
+    ):
         # TODO: add Mode, State
         self._strokePaths.append((path, color, width, antialiasing))
 
@@ -41,17 +43,17 @@ class PathIconEngine(QIconEngine):
         if not size.isNull() and (
             size.width() > target.width() or size.height() > target.height()
         ):
-            sz = size.scaled(target, Qt.KeepAspectRatio)
+            sz = size.scaled(target, Qt.AspectRatioMode.KeepAspectRatio)
             width, height = sz.width() / size.width(), sz.height() / size.height()
             # TODO: don't scale the painter, instead make a rect which
             # coordinates are used to paint in; this will ensure pixel
             # perfection
             painter.scale(width, height)
         for path, color, antialiasing in self._fillPaths:
-            painter.setRenderHint(QPainter.Antialiasing, antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, antialiasing)
             painter.fillPath(path, color)
         for path, color, width, antialiasing in self._strokePaths:
-            painter.setRenderHint(QPainter.Antialiasing, antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, antialiasing)
             pen = painter.pen()
             pen.setColor(color)
             pen.setWidthF(width)
@@ -61,7 +63,7 @@ class PathIconEngine(QIconEngine):
 
     def pixmap(self, size, mode, state):
         pixmap = QPixmap(size)
-        pixmap.fill(Qt.transparent)
+        pixmap.fill(Qt.GlobalColor.transparent)
         painter = QPainter()
         painter.begin(pixmap)
         self.paint(painter, QRect(QPoint(0, 0), size), mode, state)

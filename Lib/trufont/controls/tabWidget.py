@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QEvent, QRect, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPainter, QPainterPath
-from PyQt5.QtWidgets import QSizePolicy, QToolTip, QWidget
+from PySide6.QtCore import QEvent, QRect, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPainterPath
+from PySide6.QtWidgets import QSizePolicy, QToolTip, QWidget
 
 __all__ = ["TabWidget"]
 
@@ -22,13 +22,13 @@ class TabWidget(QWidget):
     # TODO: RTL support?
     """
 
-    currentTabChanged = pyqtSignal(int)
-    tabRemoved = pyqtSignal(int)
+    currentTabChanged = Signal(int)
+    tabRemoved = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
         self._currentTab = None
         self._autoHide = True
@@ -121,7 +121,7 @@ class TabWidget(QWidget):
     # ----------
 
     def event(self, event):
-        if event.type() == QEvent.ToolTip:
+        if event.type() == QEvent.Type.ToolTip:
             index = None
             for recordIndex, rect in self._tabsRects.items():
                 if QRect(*rect).contains(event.pos()):
@@ -135,7 +135,7 @@ class TabWidget(QWidget):
         return super().event(event)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             for recordIndex, rect in self._tabsRects.items():
                 if QRect(*rect).contains(event.pos()):
                     self.setCurrentTab(recordIndex)
@@ -160,7 +160,7 @@ class TabWidget(QWidget):
             self.update()
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             elements = [(self._closeRects, self.removeTab)]
             for rects, func in elements:
                 for recordIndex, rect in rects.items():
@@ -216,8 +216,8 @@ class TabWidget(QWidget):
             painter.save()
             painter.translate(sidePadding, metrics.ascent() + topPadding)
             painter.setPen(textColor)
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.drawText(0, 0, metrics.elidedText(name, Qt.ElideRight, textWidth))
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.drawText(0, 0, metrics.elidedText(name, Qt.TextElideMode.ElideRight, textWidth))
             # cross
             if isClosable:
                 # 3px padding for click rect
@@ -257,7 +257,7 @@ class TabWidget(QWidget):
         metrics = self.fontMetrics()
         heroTab = self._heroFirstTab
         for name in self._tabs:
-            width += metrics.width(name) + 2 * sidePadding + spacing
+            width += metrics.horizontalAdvance(name) + 2 * sidePadding + spacing
             if not heroTab:
                 width += crossMargin + crossSize
             heroTab = False

@@ -17,7 +17,7 @@ from defcon import (
     Point,
 )
 from fontTools.misc.transform import Identity
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from ufo2ft import compileOTF, compileTTF
 
 from trufont.objects import settings

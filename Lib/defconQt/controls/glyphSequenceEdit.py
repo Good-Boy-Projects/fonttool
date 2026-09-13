@@ -10,8 +10,8 @@ constructor.
 .. _QLineEdit: http://doc.qt.io/qt-5/qlineedit.html
 """
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QComboBox, QLineEdit
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QComboBox, QLineEdit
 
 from defconQt.tools.textSplitter import splitText
 
@@ -34,7 +34,7 @@ class GlyphSequenceComboBox(QComboBox):
         # otherwise it will return None
         self.setEditable(True)
         completer = self.completer()
-        completer.setCaseSensitivity(Qt.CaseSensitive)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseSensitive)
         self.setCompleter(completer)
         self._font = font
 

@@ -6,8 +6,8 @@ Windows that want to plug-in their own menu entries must implement
 - setMenuBar(menuBar)
 
 """
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QAction, QApplication, QMenu, QMenuBar
+from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtWidgets import QApplication, QMenu, QMenuBar
 
 from trufont.tools import platformSpecific
 
@@ -166,27 +166,29 @@ class Entries:
     Help_About = "&About"
 
 
+# QKeySequence standard-key constants moved under the scoped
+# QKeySequence.StandardKey enum in Qt6 (were bare QKeySequence.New etc. in Qt5).
 _shortcuts = {
-    Entries.File_New: QKeySequence.New,
-    Entries.File_Open: QKeySequence.Open,
-    Entries.File_Save: QKeySequence.Save,
-    Entries.File_Save_As: QKeySequence.SaveAs,
+    Entries.File_New: QKeySequence.StandardKey.New,
+    Entries.File_Open: QKeySequence.StandardKey.Open,
+    Entries.File_Save: QKeySequence.StandardKey.Save,
+    Entries.File_Save_As: QKeySequence.StandardKey.SaveAs,
     Entries.File_Close: platformSpecific.closeKeySequence(),
     Entries.File_Export: "Ctrl+E",
-    Entries.File_Exit: QKeySequence.Quit,
-    Entries.Edit_Undo: QKeySequence.Undo,
-    Entries.Edit_Redo: QKeySequence.Redo,
-    Entries.Edit_Cut: QKeySequence.Cut,
-    Entries.Edit_Copy: QKeySequence.Copy,
+    Entries.File_Exit: QKeySequence.StandardKey.Quit,
+    Entries.Edit_Undo: QKeySequence.StandardKey.Undo,
+    Entries.Edit_Redo: QKeySequence.StandardKey.Redo,
+    Entries.Edit_Cut: QKeySequence.StandardKey.Cut,
+    Entries.Edit_Copy: QKeySequence.StandardKey.Copy,
     Entries.Edit_Copy_As_Component: "Ctrl+Alt+C",
-    Entries.Edit_Paste: QKeySequence.Paste,
-    Entries.Edit_Select_All: QKeySequence.SelectAll,
+    Entries.Edit_Paste: QKeySequence.StandardKey.Paste,
+    Entries.Edit_Select_All: QKeySequence.StandardKey.SelectAll,
     Entries.Edit_Deselect: "Ctrl+D",
-    Entries.Edit_Find: QKeySequence.Find,
-    Entries.View_Zoom_In: QKeySequence.ZoomIn,
-    Entries.View_Zoom_Out: QKeySequence.ZoomOut,
+    Entries.Edit_Find: QKeySequence.StandardKey.Find,
+    Entries.View_Zoom_In: QKeySequence.StandardKey.ZoomIn,
+    Entries.View_Zoom_Out: QKeySequence.StandardKey.ZoomOut,
     Entries.View_Reset_Zoom: "Ctrl+0",
-    Entries.View_Next_Tab: QKeySequence.NextChild,
+    Entries.View_Next_Tab: QKeySequence.StandardKey.NextChild,
     Entries.View_Previous_Tab: platformSpecific.previousTabSequence(),
     Entries.View_Next_Glyph: "End",
     Entries.View_Previous_Glyph: "Home",

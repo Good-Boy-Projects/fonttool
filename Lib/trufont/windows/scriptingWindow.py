@@ -3,15 +3,16 @@ import tokenize
 import traceback
 from keyword import kwlist
 
-from PyQt5.QtCore import QDir, QSettings, QSize, Qt, QUrl, pyqtSignal
-from PyQt5.QtGui import (
+from PySide6.QtCore import QDir, QSettings, QSize, Qt, QUrl, Signal
+from PySide6.QtGui import (
     QColor,
     QDesktopServices,
     QKeySequence,
+    QShortcut,
     QTextCharFormat,
     QTextCursor,
 )
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
     QFileDialog,
@@ -20,9 +21,9 @@ from PyQt5.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
-    QShortcut,
     QSplitter,
     QStatusBar,
+    QStyle,
     QTreeView,
     QVBoxLayout,
     QWidget,
@@ -51,7 +52,7 @@ class ScriptingWindow(QMainWindow):
         self.outputEdit = OutputEdit(self)
 
         splitter = QSplitter(self)
-        self.vSplitter = QSplitter(Qt.Vertical, splitter)
+        self.vSplitter = QSplitter(Qt.Orientation.Vertical, splitter)
         self.vSplitter.addWidget(self.editor)
         self.vSplitter.addWidget(self.outputEdit)
         self.vSplitter.setStretchFactor(0, 1)
@@ -135,7 +136,7 @@ class ScriptingWindow(QMainWindow):
         if not self._maybeSaveBeforeExit():
             return
         if path is None:
-            path = self._ioDialog(QFileDialog.AcceptOpen)
+            path = self._ioDialog(QFileDialog.AcceptMode.AcceptOpen)
             if path is None:
                 return
             self.fileChooser.setCurrentFolder(os.path.dirname(path))
@@ -150,7 +151,7 @@ class ScriptingWindow(QMainWindow):
             self.editor.write(self.currentPath)
 
     def saveFileAs(self):
-        path = self._ioDialog(QFileDialog.AcceptSave)
+        path = self._ioDialog(QFileDialog.AcceptMode.AcceptSave)
         if path is not None:
             self.currentPath = path
             self.saveFile()
@@ -158,7 +159,7 @@ class ScriptingWindow(QMainWindow):
     # TODO: why not use simple dialogs?
     def _ioDialog(self, mode):
         state = settings.scriptingFileDialogState()
-        if mode == QFileDialog.AcceptOpen:
+        if mode == QFileDialog.AcceptMode.AcceptOpen:
             title = self.tr("Open File")
         else:
             title = self.tr("Save File")
@@ -167,8 +168,8 @@ class ScriptingWindow(QMainWindow):
             dialog.restoreState(state)
         dialog.setAcceptMode(mode)
         dialog.setDirectory(self.fileChooser.currentFolder())
-        dialog.setFileMode(QFileDialog.ExistingFile)
-        ok = dialog.exec_()
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        ok = dialog.exec()
         settings.setScriptingFileDialogState(state)
         if ok:
             return dialog.selectedFiles()[0]
@@ -227,10 +228,10 @@ class ScriptingWindow(QMainWindow):
         if self.isWindowModified():
             currentFile = self.windowTitle()[3:]
             ret = CloseMessageBox.getCloseDocument(self, currentFile)
-            if ret == QMessageBox.Save:
+            if ret == QMessageBox.StandardButton.Save:
                 self.saveFile()
                 return True
-            elif ret == QMessageBox.Discard:
+            elif ret == QMessageBox.StandardButton.Discard:
                 return True
             return False
         return True
@@ -248,7 +249,7 @@ class FileTreeView(QTreeView):
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             model = self.model()
             modelIndex = self.indexAt(event.pos())
             if modelIndex.isValid():
@@ -259,7 +260,7 @@ class FileTreeView(QTreeView):
             menu.addAction(
                 self.tr("Open In Explorer"), lambda: self._showInExplorer(path)
             )
-            menu.exec_(event.globalPos())
+            menu.exec(event.globalPos())
 
     def mouseDoubleClickEvent(self, event):
         if self.doubleClickCallback is not None:
@@ -270,7 +271,7 @@ class FileTreeView(QTreeView):
 
 
 class FileChooser(QWidget):
-    fileOpened = pyqtSignal(str)
+    fileOpened = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -279,7 +280,9 @@ class FileChooser(QWidget):
         self.explorerTree = FileTreeView(self)
         self.explorerTree.doubleClickCallback = self._fileOpened
         self.explorerModel = QFileSystemModel(self)
-        self.explorerModel.setFilter(QDir.AllDirs | QDir.Files | QDir.NoDotAndDotDot)
+        self.explorerModel.setFilter(
+            QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot
+        )
         self.explorerModel.setNameFilters(["*.py"])
         self.explorerModel.setNameFilterDisables(False)
         self.explorerTree.setModel(self.explorerModel)
@@ -312,7 +315,7 @@ class FileChooser(QWidget):
         self.folderBox.blockSignals(True)
         self.folderBox.clear()
         style = self.style()
-        dirIcon = style.standardIcon(style.SP_DirIcon)
+        dirIcon = style.standardIcon(QStyle.StandardPixmap.SP_DirIcon)
         self.folderBox.addItem(dirIcon, os.path.basename(path))
         self.folderBox.insertSeparator(1)
         self.folderBox.addItem(self.tr("Browse…"))
@@ -326,7 +329,7 @@ class FileChooser(QWidget):
             self,
             self.tr("Choose Directory"),
             self.currentFolder(),
-            QFileDialog.ShowDirsOnly,
+            QFileDialog.Option.ShowDirsOnly,
         )
         if path:
             QSettings().setValue("scripting/path", path)
@@ -336,11 +339,11 @@ class FileChooser(QWidget):
 class PythonEditor(BaseCodeEditor):
     openBlockDelimiter = ":"
     autocomplete = {
-        Qt.Key_ParenLeft: ")",
-        Qt.Key_BracketLeft: "]",
-        Qt.Key_BraceLeft: "}",
-        Qt.Key_Apostrophe: "",
-        Qt.Key_QuoteDbl: "",
+        Qt.Key.Key_ParenLeft: ")",
+        Qt.Key.Key_BracketLeft: "]",
+        Qt.Key.Key_BraceLeft: "}",
+        Qt.Key.Key_Apostrophe: "",
+        Qt.Key.Key_QuoteDbl: "",
     }
 
     def __init__(self, parent=None):
@@ -358,15 +361,17 @@ class PythonEditor(BaseCodeEditor):
             super().keyPressEvent(event)
             cursor = self.textCursor()
             cursor.insertText(self.autocomplete[key] or chr(key))
-            cursor.movePosition(QTextCursor.PreviousCharacter)
+            cursor.movePosition(QTextCursor.MoveOperation.PreviousCharacter)
             self.setTextCursor(cursor)
             return
-        elif key == Qt.Key_Return:
+        elif key == Qt.Key.Key_Return:
             cursor = self.textCursor()
-            ok = cursor.movePosition(QTextCursor.NextCharacter)
+            ok = cursor.movePosition(QTextCursor.MoveOperation.NextCharacter)
             if ok:
                 cursor.movePosition(
-                    QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor, 2
+                    QTextCursor.MoveOperation.PreviousCharacter,
+                    QTextCursor.MoveMode.KeepAnchor,
+                    2,
                 )
                 combo = [
                     "{}{}".format(chr(k), v) for k, v in self.autocomplete.items() if v
@@ -377,17 +382,19 @@ class PythonEditor(BaseCodeEditor):
                 for _ in range(2):
                     super().keyPressEvent(event)
                 cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.Up)
+                cursor.movePosition(QTextCursor.MoveOperation.Up)
                 cursor.insertText(self._indent)
-                cursor.movePosition(QTextCursor.EndOfLine)
+                cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
                 self.setTextCursor(cursor)
                 return
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             cursor = self.textCursor()
-            ok = cursor.movePosition(QTextCursor.PreviousCharacter)
+            ok = cursor.movePosition(QTextCursor.MoveOperation.PreviousCharacter)
             if ok:
                 ok = cursor.movePosition(
-                    QTextCursor.NextCharacter, QTextCursor.KeepAnchor, 2
+                    QTextCursor.MoveOperation.NextCharacter,
+                    QTextCursor.MoveMode.KeepAnchor,
+                    2,
                 )
                 tags = [
                     "{}{}".format(chr(k), v if v else chr(k))
@@ -527,7 +534,7 @@ class ScriptingStatusBar(QStatusBar):
 
 
 class IndentLabel(ClickLabel):
-    indentModified = pyqtSignal(str)
+    indentModified = Signal(str)
 
     def contextMenu(self):
         menu = QMenu(self)

@@ -1,8 +1,8 @@
 import bisect
 
-from PyQt5.QtCore import QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QGridLayout, QPushButton, QRadioButton, QSizePolicy, QWidget
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QKeySequence
+from PySide6.QtWidgets import QGridLayout, QPushButton, QRadioButton, QSizePolicy, QWidget
 
 from defconQt.controls.glyphCellView import GlyphCellView, GlyphCellWidget
 from defconQt.controls.listView import ListView
@@ -17,7 +17,7 @@ _rightGroupPrefix = "public.kern2"
 
 class GroupsWindow(QWidget):
     def __init__(self, font, parent=None):
-        super().__init__(parent, Qt.Window)
+        super().__init__(parent, Qt.WindowType.Window)
         self._autoDirection = True
         self._font = font
         self._font.groups.addObserver(self, "_groupsChanged", "Groups.Changed")
@@ -55,7 +55,7 @@ class GroupsWindow(QWidget):
         self.groupCellView.selectionDeleted.connect(self._selectionDeleted)
 
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         layout = QGridLayout(self)
         layout.addWidget(self.groupsListView, 0, 0, 5, 3)
@@ -216,8 +216,8 @@ class GroupsWindow(QWidget):
 
 
 class GroupListView(ListView):
-    alignmentChanged = pyqtSignal(bool)
-    groupDeleted = pyqtSignal(object)
+    alignmentChanged = Signal(bool)
+    groupDeleted = Signal(object)
 
     def currentValue(self):
         index = self.currentIndex()
@@ -236,16 +236,16 @@ class GroupListView(ListView):
             if indexes:
                 data = self.model().data(indexes[0])
                 self.groupDeleted.emit(data)
-        elif key == Qt.Key_Left:
+        elif key == Qt.Key.Key_Left:
             self.alignmentChanged.emit(False)
-        elif key == Qt.Key_Right:
+        elif key == Qt.Key.Key_Right:
             self.alignmentChanged.emit(True)
         else:
             super().keyPressEvent(event)
 
 
 class GroupCellWidget(GlyphCellWidget):
-    selectionDeleted = pyqtSignal(set)
+    selectionDeleted = Signal(set)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -258,7 +258,7 @@ class GroupCellWidget(GlyphCellWidget):
         self._font = font
 
     def keyPressEvent(self, event):
-        if event.matches(QKeySequence.Delete):
+        if event.matches(QKeySequence.StandardKey.Delete):
             selection = self._selection
             if selection:
                 self.selectionDeleted.emit(selection)

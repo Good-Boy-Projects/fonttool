@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QEvent, QPoint, QPointF, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QPainter
-from PyQt5.QtWidgets import QApplication, QWidget
+from PySide6.QtCore import QEvent, QPoint, QPointF, QSize, Qt, Signal
+from PySide6.QtGui import QCursor, QPainter
+from PySide6.QtWidgets import QApplication, QWidget
 
 from defconQt.controls.glyphView import GlyphViewMinSizeForDetails, UIFont
 from defconQt.tools import drawing, platformSpecific
@@ -32,15 +32,15 @@ class GlyphFlags:
 
 
 class GlyphContextView(QWidget):
-    activeGlyphChanged = pyqtSignal()
-    pointSizeModified = pyqtSignal(int)
+    activeGlyphChanged = Signal()
+    pointSizeModified = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setContextMenuPolicy(Qt.DefaultContextMenu)
-        self.setFocusPolicy(Qt.ClickFocus)
-        self.grabGesture(Qt.PanGesture)
-        self.grabGesture(Qt.PinchGesture)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.grabGesture(Qt.GestureType.PanGesture)
+        self.grabGesture(Qt.GestureType.PinchGesture)
         self._drawingOffset = QPointF()
         self._fitViewport = True
         self._glyphRecords = []
@@ -82,7 +82,7 @@ class GlyphContextView(QWidget):
         self._inverseScale = 0.1
         self._impliedPointSize = 1000
 
-        self._backgroundColor = Qt.white
+        self._backgroundColor = Qt.GlobalColor.white
 
     @property
     def _glyph(self):
@@ -436,7 +436,7 @@ class GlyphContextView(QWidget):
 
     def drawingColor(self, attr, flags):
         if attr == "contourFillColor":
-            return Qt.black
+            return Qt.GlobalColor.black
         return None
 
     # defaults
@@ -668,7 +668,7 @@ class GlyphContextView(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setFont(UIFont)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         # draw the background
         self._glyphRecordsRects = {}
@@ -767,14 +767,14 @@ class GlyphContextView(QWidget):
             del self._fitViewport
 
     def event(self, event):
-        if event.type() == QEvent.Gesture:
+        if event.type() == QEvent.Type.Gesture:
             # Handle pan gestures
-            panGesture = event.gesture(Qt.PanGesture)
+            panGesture = event.gesture(Qt.GestureType.PanGesture)
             if panGesture:
                 self._drawingOffset += panGesture.delta()
 
             # Handle pinch gestures
-            pinchGesture = event.gesture(Qt.PinchGesture)
+            pinchGesture = event.gesture(Qt.GestureType.PinchGesture)
             if pinchGesture:
                 newScale = self._scale * pinchGesture.scaleFactor()
                 self.zoom(newScale, "cursor")

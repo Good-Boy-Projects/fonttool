@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QPainterPath
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QSpinBox, QWidget
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QColor, QPainter, QPainterPath
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QSpinBox, QWidget
 
 from trufont.controls.pathButton import PathButton
 
@@ -46,10 +46,10 @@ class StatusBar(QWidget):
         minusButton.setProperty("delta", -10)
         minusButton.pressed.connect(self._sizeOffset)
         self.sizeEdit = QSpinBox(self)
-        self.sizeEdit.setButtonSymbols(QSpinBox.NoButtons)
+        self.sizeEdit.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         self.sizeEdit.setFixedWidth(56)
         self.sizeEdit.setFrame(False)
-        self.sizeEdit.lineEdit().setAlignment(Qt.AlignCenter)
+        self.sizeEdit.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
         plusButton = Button()
         plusButton.setDrawingCommands([QSize(23, 25), (_plusPath, "1", btnColor)])
         plusButton.setProperty("delta", 10)
@@ -58,7 +58,7 @@ class StatusBar(QWidget):
         layout = QHBoxLayout(self)
         layout.addWidget(self.statusLabel)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         layout.addWidget(spacer)
         layout.addWidget(minusButton)
         layout.addWidget(self.sizeEdit)
@@ -123,7 +123,7 @@ class StatusBar(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.fillRect(event.rect(), Qt.white)
+        painter.fillRect(event.rect(), Qt.GlobalColor.white)
 
     def _sizeOffset(self):
         delta = self.sender().property("delta")

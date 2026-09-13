@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 
 from defconQt.representationFactories.glyphCellFactory import (
     GlyphCellFactoryDrawingController,
@@ -60,7 +60,7 @@ class TFGlyphCellFactoryDrawingController(GlyphCellFactoryDrawingController):
             font = platformSpecific.otherUIFont()
             font.setPointSize(int(0.425 * self.height))
             painter.setFont(font)
-            painter.setPen(Qt.lightGray)
+            painter.setPen(Qt.GlobalColor.lightGray)
             if self.glyph.unicode is not None:
                 uni = self.glyph.unicode
             else:
@@ -70,7 +70,7 @@ class TFGlyphCellFactoryDrawingController(GlyphCellFactoryDrawingController):
                 0,
                 self.width,
                 self.height - GlyphCellHeaderHeight,
-                int(Qt.AlignVCenter | Qt.AlignCenter),
+                int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignCenter),
                 chr(uni),
             )
             painter.restore()

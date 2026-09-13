@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QDate, QDateTime, QLocale, QRegularExpression, Qt, QTime
-from PyQt5.QtGui import QRegularExpressionValidator, QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QDate, QDateTime, QLocale, QRegularExpression, Qt, QTime
+from PySide6.QtGui import QRegularExpressionValidator, QStandardItem, QStandardItemModel
+from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDateTimeEdit,
@@ -31,7 +31,7 @@ from trufont.objects import settings
 
 def TransparentScrollArea(parent=None):
     scrollArea = QScrollArea(parent)
-    scrollArea.setFrameShape(scrollArea.NoFrame)
+    scrollArea.setFrameShape(scrollArea.Shape.NoFrame)
     scrollArea.setStyleSheet(".QScrollArea { background: transparent; }")
     scrollArea.viewport().setStyleSheet(".QWidget { background: transparent; }")
     return scrollArea
@@ -49,7 +49,7 @@ class FontInfoWindow(QDialog):
         self.tabWidget.addNamedTab(PostScriptTab(self.font))
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self
         )
 
         buttonBox.accepted.connect(self.accept)
@@ -315,7 +315,7 @@ class GeneralTab(TabWidget):
         # General general metadata
         g1FormLayout = QFormLayout()
         g1FormLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         familyNameLabel = QLabel(self.tr("Family name:"), self)
@@ -390,7 +390,7 @@ class GeneralTab(TabWidget):
         # General metrics metadata
         g2FormLayout = QFormLayout()
         g2FormLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         unitsPerEmLabel = QLabel(self.tr("Units per em:"), self)
@@ -424,7 +424,7 @@ class GeneralTab(TabWidget):
         # Notes
         notesLayout = QFormLayout()
         notesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
         notesLayout.setRowWrapPolicy(QFormLayout.WrapAllRows)
 
@@ -474,7 +474,7 @@ class LegalTab(TabWidget):
         self.name = self.tr("Legal")
 
         mainLayout = QFormLayout(self)
-        mainLayout.setLabelAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        mainLayout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter)
 
         designerLabel = QLabel(self.tr("Designer:"), self)
         edit = self.load("openTypeNameDesigner", "s")
@@ -547,7 +547,7 @@ class OpenTypeTab(TabWidget):
         tableLayout.addWidget(self.setupVheaGroup())
         tableLayout.addWidget(self.setupOs2Group())
 
-        spacer = QSpacerItem(10, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacer = QSpacerItem(10, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         tableLayout.addItem(spacer)
 
     def setupHeadGroup(self):
@@ -556,7 +556,7 @@ class OpenTypeTab(TabWidget):
 
         headAttributesLayout = QFormLayout()
         headAttributesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -591,9 +591,9 @@ class OpenTypeTab(TabWidget):
             item.setCheckable(True)
             bit = itemToFlagMap[index]
             if flags is not None and bit in flags:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             else:
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
             model.setItem(index, item)
         self.flagsEdit.setModel(model)
         if flags is not None:
@@ -612,7 +612,7 @@ class OpenTypeTab(TabWidget):
 
         nameAttributesLayout = QFormLayout()
         nameAttributesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -671,7 +671,7 @@ class OpenTypeTab(TabWidget):
 
         hheaAttributesLayout = QFormLayout()
         hheaAttributesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -712,7 +712,7 @@ class OpenTypeTab(TabWidget):
 
         vheaAttributesLayout = QFormLayout()
         vheaAttributesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -763,7 +763,7 @@ class OpenTypeTab(TabWidget):
 
         os2AttributesLayout = QFormLayout()
         os2AttributesLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -822,7 +822,7 @@ class OpenTypeTab(TabWidget):
         fsSelectionLabel = RCheckBox(self.tr("fsSelection:"))
         fsSelection = font.info.openTypeOS2Selection
         self.fsSelectionList = BitListView(self)
-        self.fsSelectionList.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.fsSelectionList.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         fsSelectionLabel.clicked.connect(self.fsSelectionList.setEnabled)
         items = [
             self.tr("Bit 1 UNDERSCORE"),
@@ -842,9 +842,9 @@ class OpenTypeTab(TabWidget):
             item.setCheckable(True)
             bit = itemToFlagMap[index]
             if fsSelection is not None and bit in fsSelection:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             else:
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
             model.setItem(index, item)
         self.fsSelectionList.setModel(model)
         if fsSelection is not None:
@@ -894,7 +894,7 @@ class OpenTypeTab(TabWidget):
         panose = font.info.openTypeOS2Panose
         panoseLayout = QFormLayout()
         panoseLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
         panoseFamilyLabel = QLabel(self.tr("Family:"))
         panoseFamilyTypes = [
@@ -1255,7 +1255,7 @@ class OpenTypeTab(TabWidget):
         unicodeRanges = font.info.openTypeOS2UnicodeRanges
         self.unicodeRangesEdit = QListView(self)  # too long for BitListView
         self.unicodeRangesEdit.setMinimumHeight(200)
-        self.unicodeRangesEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.unicodeRangesEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         uRModel = QStandardItemModel(len(unicodeRangesItems), 1)
         for index, elem in enumerate(unicodeRangesItems):
             item = QStandardItem()
@@ -1263,9 +1263,9 @@ class OpenTypeTab(TabWidget):
             item.setCheckable(True)
             bit = index
             if unicodeRanges is not None and bit in unicodeRanges:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             else:
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
             uRModel.setItem(index, item)
         self.unicodeRangesEdit.setModel(uRModel)
         unicodeRangesLabel.clicked.connect(self.unicodeRangesEdit.setEnabled)
@@ -1315,7 +1315,7 @@ class OpenTypeTab(TabWidget):
         codePageRanges = font.info.openTypeOS2CodePageRanges
         self.codePageRangesEdit = QListView(self)  # too long for BitListView
         self.codePageRangesEdit.setMinimumHeight(200)
-        self.codePageRangesEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.codePageRangesEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         cPRModel = QStandardItemModel(len(codePageRangesItems), 1)
         for index, elem in enumerate(codePageRangesItems):
             item = QStandardItem()
@@ -1329,9 +1329,9 @@ class OpenTypeTab(TabWidget):
             elif index > 8:
                 bit += 7
             if codePageRanges is not None and bit in codePageRanges:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             else:
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
             cPRModel.setItem(index, item)
         self.codePageRangesEdit.setModel(cPRModel)
         codePageRangesLabel.clicked.connect(self.codePageRangesEdit.setEnabled)
@@ -1446,7 +1446,7 @@ class OpenTypeTab(TabWidget):
             model = self.flagsEdit.model()
             for index in range(model.rowCount()):
                 item = model.item(index)
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     headFlags.append(itemToFlagMap[index])
             font.info.openTypeHeadFlags = headFlags
         else:
@@ -1492,7 +1492,7 @@ class OpenTypeTab(TabWidget):
             fsSelection = []
             for i in range(7):
                 item = fsSelectionModel.item(i)
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     fsSelection.append(itemToFlagMap[i])
             font.info.openTypeOS2Selection = fsSelection
         else:
@@ -1545,7 +1545,7 @@ class OpenTypeTab(TabWidget):
             model = self.unicodeRangesEdit.model()
             for index in range(model.rowCount()):
                 item = model.item(index)
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     unicodeRanges.append(index)
             font.info.openTypeOS2UnicodeRanges = unicodeRanges
         else:
@@ -1556,7 +1556,7 @@ class OpenTypeTab(TabWidget):
             model = self.codePageRangesEdit.model()
             for index in range(model.rowCount()):
                 item = model.item(index)
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     bit = index
                     if index > 17:
                         bit += 30
@@ -1606,7 +1606,7 @@ class PostScriptTab(TabWidget):
         namingGroup = QGroupBox(self.tr("Naming"))
         namingLayout = QFormLayout(namingGroup)
         namingLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -1628,7 +1628,7 @@ class PostScriptTab(TabWidget):
         hintsGroup = QGroupBox(self.tr("Hints"))
         hintsLayout = QFormLayout(hintsGroup)
         hintsLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -1674,7 +1674,7 @@ class PostScriptTab(TabWidget):
         metricsGroup = QGroupBox(self.tr("Metrics"))
         metricsLayout = QFormLayout(metricsGroup)
         metricsLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -1708,7 +1708,7 @@ class PostScriptTab(TabWidget):
         charactersGroup = QGroupBox(self.tr("Characters"))
         charactersLayout = QFormLayout(charactersGroup)
         charactersLayout.setLabelAlignment(
-            Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTrailing | Qt.AlignmentFlag.AlignVCenter
         )
 
         self.loadCustomIntoForm(
@@ -1757,7 +1757,7 @@ class PostScriptTab(TabWidget):
 
         tableLayout.addWidget(charactersGroup)
 
-        spacer = QSpacerItem(10, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacer = QSpacerItem(10, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         tableLayout.addItem(spacer)
 
     def storeValues(self):
@@ -1806,8 +1806,8 @@ class BitListView(QListView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
     # https://forum.qt.io/topic/40717/set-size-of-the-qlistview-to-fit-to-it-s-content/7  # noqa
     def sizeHint(self):
@@ -1846,4 +1846,4 @@ class RCheckBox(QCheckBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setLayoutDirection(Qt.RightToLeft)
+        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)

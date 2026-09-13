@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QEvent, QLocale, Qt
-from PyQt5.QtGui import QDoubleValidator
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QEvent, QLocale, Qt
+from PySide6.QtGui import QDoubleValidator
+from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QGridLayout,
@@ -16,7 +16,7 @@ class FindDialog(QDialog):
 
     def __init__(self, currentGlyph, parent=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Find…"))
         self._sortedGlyphNames = currentGlyph.font.unicodeData.sortGlyphNames(
             currentGlyph.layer.keys(), self.alphabetical
@@ -37,7 +37,9 @@ class FindDialog(QDialog):
         self.glyphList = QListWidget(self)
         self.glyphList.itemDoubleClicked.connect(self.accept)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -55,7 +57,10 @@ class FindDialog(QDialog):
         self.updateGlyphList()
 
     def lineEvent(self, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+        if (
+            event.type() == QEvent.Type.KeyPress
+            and event.key() == Qt.Key.Key_Tab
+        ):
             if self.beginsWithBox.isChecked():
                 self.containsBox.toggle()
             else:
@@ -66,7 +71,7 @@ class FindDialog(QDialog):
 
     def lineKeyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_Up or key == Qt.Key_Down:
+        if key == Qt.Key.Key_Up or key == Qt.Key.Key_Down:
             self.glyphList.keyPressEvent(event)
         else:
             QLineEdit.keyPressEvent(self.glyphEdit, event)
@@ -96,7 +101,7 @@ class FindDialog(QDialog):
     @classmethod
     def getNewGlyph(cls, parent, currentGlyph):
         dialog = cls(currentGlyph, parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         currentItem = dialog.glyphList.currentItem()
         newGlyph = None
         if currentItem is not None:
@@ -117,7 +122,7 @@ class AddComponentDialog(FindDialog):
 class LayerActionsDialog(QDialog):
     def __init__(self, currentGlyph, parent=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Layer actions…"))
         self._workableLayers = []
         for layer in currentGlyph.layerSet:
@@ -136,7 +141,9 @@ class LayerActionsDialog(QDialog):
             self.layersList.setCurrentRow(0)
         self.layersList.itemDoubleClicked.connect(self.accept)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -154,7 +161,7 @@ class LayerActionsDialog(QDialog):
     @classmethod
     def getLayerAndAction(cls, parent, currentGlyph):
         dialog = cls(currentGlyph, parent)
-        result = dialog.exec_()
+        result = dialog.exec()
         currentItem = dialog.layersList.currentItem()
         newLayer = None
         if currentItem is not None:
@@ -172,12 +179,12 @@ class LayerActionsDialog(QDialog):
 class EditDialog(QDialog):
     def __init__(self, parent=None, item=None):
         super().__init__(parent)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.tr("Edit…"))
 
         nameLabel = QLabel(self.tr("Name:"), self)
         self.nameEdit = QLineEdit(self)
-        self.nameEdit.setFocus(Qt.OtherFocusReason)
+        self.nameEdit.setFocus(Qt.FocusReason.OtherFocusReason)
 
         validator = QDoubleValidator(self)
         validator.setLocale(QLocale.c())
@@ -188,7 +195,9 @@ class EditDialog(QDialog):
         self.yEdit = QLineEdit(self)
         self.yEdit.setValidator(validator)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
@@ -214,7 +223,7 @@ class EditDialog(QDialog):
         dialog.xEdit.selectAll()
         dialog.yEdit.setText(str(item.y))
         dialog.yEdit.selectAll()
-        result = dialog.exec_()
+        result = dialog.exec()
         name = dialog.nameEdit.text()
         x = float(dialog.xEdit.text())
         y = float(dialog.yEdit.text())
