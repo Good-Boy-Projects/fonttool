@@ -81,8 +81,8 @@ class AboutDialog(QDialog):
         )
         textLabel = QLabel(self)
         # "PyQt {}" -> "PySide6 {}" since the binding actually running has
-        # changed; QT_VERSION_STR / PYSIDE_VERSION_STR replace the old
-        # PyQt5.Qt-umbrella QT_VERSION_STR / PYQT_VERSION_STR constants,
+        # changed; QT_VERSION_STR / PYSIDE_VERSION_STR replace the old Qt5
+        # binding's Qt-umbrella QT_VERSION_STR / PYQT_VERSION_STR constants,
         # which have no PySide6 equivalent under that name.
         text = self.tr(
             "<p>{n} is a free and open source font editor and scripting "
