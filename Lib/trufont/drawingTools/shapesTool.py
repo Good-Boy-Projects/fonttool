@@ -1,13 +1,13 @@
-from PyQt5.QtCore import QRectF, Qt
-from PyQt5.QtGui import QPainter, QPainterPath, QPalette
-from PyQt5.QtWidgets import QApplication, QRubberBand, QStyle, QStyleOptionRubberBand
+from PySide6.QtCore import QRectF, Qt
+from PySide6.QtGui import QPainter, QPainterPath, QPalette
+from PySide6.QtWidgets import QApplication, QRubberBand, QStyle, QStyleOptionRubberBand
 
 from trufont.drawingTools.baseTool import BaseTool
 from trufont.tools import platformSpecific
 
 # Draw icon
 _path = QPainterPath()
-_path.setFillRule(Qt.WindingFill)
+_path.setFillRule(Qt.FillRule.WindingFill)
 _path.addRect(6, 14, 10, 10)
 _path.addEllipse(12, 6, 12, 12)
 
@@ -37,7 +37,7 @@ class ShapesTool(BaseTool):
         width = abs(int(self._endPoint.x() - self._startPoint.x()))
 
         # If Shift key is pressed, equalize the width and height of the shape
-        if event.modifiers() & Qt.ShiftModifier:
+        if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
             if self._startPoint.y() >= self._endPoint.y():
                 self._endPoint.setY(int(self._startPoint.y() - width))
             else:
@@ -63,7 +63,7 @@ class ShapesTool(BaseTool):
         startX, startY = int(self._startPoint.x()), int(self._startPoint.y())
 
         # Draw ellipse if right mouse button was pressed
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             handlePos = 0.55
             midX = (endX + startX) / 2
             midY = (endY + startY) / 2
@@ -116,16 +116,20 @@ class ShapesTool(BaseTool):
             option.initFrom(widget)
             option.opaque = False
             option.rect = QRectF(widgetOrigin, widgetMove).toRect()
-            option.shape = QRubberBand.Rectangle
+            option.shape = QRubberBand.Shape.Rectangle
             painter.save()
-            painter.setRenderHint(QPainter.Antialiasing, False)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
             painter.resetTransform()
-            widget.style().drawControl(QStyle.CE_RubberBand, option, painter, widget)
+            widget.style().drawControl(
+                QStyle.ControlElement.CE_RubberBand, option, painter, widget
+            )
             painter.restore()
         else:
-            highlight = widget.palette().color(QPalette.Active, QPalette.Highlight)
+            highlight = widget.palette().color(
+                QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight
+            )
             painter.save()
-            painter.setRenderHint(QPainter.Antialiasing, False)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
             pen = painter.pen()
             pen.setColor(highlight.darker(120))
             pen.setWidth(0)

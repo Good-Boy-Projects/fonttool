@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
-from PyQt5.QtCore import QLineF, QPointF, Qt
-from PyQt5.QtGui import QPainterPath
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QLineF, QPointF, Qt
+from PySide6.QtGui import QPainterPath
+from PySide6.QtWidgets import QApplication
 
 from trufont.drawingTools.baseTool import BaseTool
 from trufont.tools import bezierMath, drawing
@@ -85,20 +85,20 @@ class KnifeTool(BaseTool):
     # events
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             pos = event.localPos()
             self._knifeLine = QLineF(pos, pos)
         else:
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & Qt.LeftButton:
+        if event.buttons() & Qt.MouseButton.LeftButton:
             pos = event.localPos()
             if self._knifeLine is None:
                 self._knifeLine = QLineF(pos, pos)
                 return
             line = self._knifeLine
-            if event.modifiers() & Qt.ShiftModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 pos = self.clampToOrigin(pos, line.p1())
             line.setP2(pos)
             self._findIntersections()
@@ -107,7 +107,7 @@ class KnifeTool(BaseTool):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             super().mouseReleaseEvent(event)
             return
         if self._knifeLine is not None:
@@ -120,7 +120,7 @@ class KnifeTool(BaseTool):
             return
         self._glyph.beginUndoGroup()
         cutContours = (
-            not event.modifiers() & Qt.AltModifier
+            not event.modifiers() & Qt.KeyboardModifier.AltModifier
             and len(self._cachedIntersections) > 1
         )
         if cutContours:

@@ -1,9 +1,9 @@
 import itertools
 from collections import OrderedDict
 
-from PyQt5.QtCore import QLineF, QPointF, Qt
-from PyQt5.QtGui import QColor, QPainterPath
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QLineF, QPointF, Qt
+from PySide6.QtGui import QColor, QPainterPath
+from PySide6.QtWidgets import QApplication
 
 from trufont.drawingTools.baseTool import BaseTool
 from trufont.tools import bezierMath, drawing
@@ -135,7 +135,7 @@ class RulerTool(BaseTool):
     # events
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             pos = self.magnetPos(event.localPos())
             line = QLineF(pos, pos)
             self._rulerObject = (line, "0.0º")
@@ -145,14 +145,14 @@ class RulerTool(BaseTool):
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & Qt.LeftButton:
+        if event.buttons() & Qt.MouseButton.LeftButton:
             pos = self.magnetPos(event.localPos())
             if self._rulerObject is None:
                 self._rulerObject = (QLineF(pos, pos), "0.0º")
                 return
             line, _ = self._rulerObject
             # magnet done before clamping to axis
-            if event.modifiers() & Qt.ShiftModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 pos = self.clampToOrigin(pos, line.p1())
             line.setP2(pos)
             # angle() doesnt go by trigonometric direction. Weird.
@@ -161,14 +161,14 @@ class RulerTool(BaseTool):
             a = "{}º".format(round(angle, 1))
             self._rulerObject = (line, a)
             self._rulerPts = dict()
-            if not event.modifiers() & Qt.AltModifier:
+            if not event.modifiers() & Qt.KeyboardModifier.AltModifier:
                 self._findIntersections()
             self.parent().update()
         else:
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             # double click calls release twice
             if self._rulerObject is None:
                 return
@@ -204,7 +204,7 @@ class RulerTool(BaseTool):
             # ellipses
             ellipses = [(origin.x(), origin.y()), (cursor.x(), cursor.y())]
             path = QPainterPath()
-            path.setFillRule(Qt.WindingFill)
+            path.setFillRule(Qt.FillRule.WindingFill)
             for x, y in itertools.chain(self._rulerPts.values(), ellipses):
                 x -= halfSize
                 y -= halfSize

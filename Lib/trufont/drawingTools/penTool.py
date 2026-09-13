@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QPointF, QRectF, Qt
-from PyQt5.QtGui import QPainterPath
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QPainterPath
+from PySide6.QtWidgets import QApplication
 
 from trufont.drawingTools.baseTool import BaseTool
 from trufont.tools.uiMethods import moveUIPoint
@@ -145,22 +145,22 @@ class PenTool(BaseTool):
                         return
                     if pt == contour[0]:
                         return
-                pt.smooth = not event.modifiers() & Qt.AltModifier
+                pt.smooth = not event.modifiers() & Qt.KeyboardModifier.AltModifier
                 contour.dirty = True
 
     # events
 
     def keyPressEvent(self, event):
         self._updateOnCurveSmoothness(event)
-        self._shouldMoveOnCurve = event.key() == Qt.Key_Space
+        self._shouldMoveOnCurve = event.key() == Qt.Key.Key_Space
 
     def keyReleaseEvent(self, event):
         self._updateOnCurveSmoothness(event)
-        if event.key() == Qt.Key_Space:
+        if event.key() == Qt.Key.Key_Space:
             self._shouldMoveOnCurve = False
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             super().mousePressEvent(event)
             return
         self._glyph.beginUndoGroup()
@@ -195,7 +195,7 @@ class PenTool(BaseTool):
             contour = candidate
             lastPoint = contour[-1]
             lastPoint.selected = False
-            if event.modifiers() & Qt.ShiftModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 pos = self.clampToOrigin(
                     self._origin, QPointF(lastPoint.x, lastPoint.y)
                 ).toPoint()
@@ -218,7 +218,7 @@ class PenTool(BaseTool):
         self._targetContour = contour
 
     def mouseMoveEvent(self, event):
-        if not event.buttons() & Qt.LeftButton:
+        if not event.buttons() & Qt.MouseButton.LeftButton:
             super().mouseMoveEvent(event)
             return
         contour = self._targetContour
@@ -240,7 +240,7 @@ class PenTool(BaseTool):
             if (widgetRect.bottomRight() - widgetRect.topLeft()).manhattanLength() < 10:
                 return
             # go
-            onSmooth = not event.modifiers() & Qt.AltModifier
+            onSmooth = not event.modifiers() & Qt.KeyboardModifier.AltModifier
             pt.selected = False
             pt.smooth = len(contour) > 1 and onSmooth
             contour.holdNotifications()
@@ -265,7 +265,7 @@ class PenTool(BaseTool):
                 onCurve = contour[-2]
             else:
                 onCurve = contour[0]
-            if event.modifiers() & Qt.ShiftModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 pos = self.clampToOrigin(
                     event.localPos(), QPointF(onCurve.x, onCurve.y)
                 ).toPoint()
@@ -285,7 +285,7 @@ class PenTool(BaseTool):
             contour.dirty = True
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self._shouldMoveOnCurve = False
             self._stashedOffCurve = None
             self._targetContour = None
