@@ -675,7 +675,7 @@ class FontWindow(BaseWindow):
             glyph = widget.activeGlyph()
         else:
             glyph = widget.lastSelectedGlyph()
-        glyph.undo()
+        glyph.undoManager.undo()
 
     def redo(self):
         widget = self.stackWidget.currentWidget()
@@ -683,7 +683,7 @@ class FontWindow(BaseWindow):
             glyph = widget.activeGlyph()
         else:
             glyph = widget.lastSelectedGlyph()
-        glyph.redo()
+        glyph.undoManager.redo()
 
     def cut(self):
         self.copy()
@@ -1099,9 +1099,9 @@ class FontWindow(BaseWindow):
             self._redoAction.setEnabled(False)
         else:
             undoManager = currentGlyph.undoManager
-            self._undoAction.setEnabled(currentGlyph.canUndo())
+            self._undoAction.setEnabled(undoManager.canUndo())
             undoManager.canUndoChanged.connect(self._undoAction.setEnabled)
-            self._redoAction.setEnabled(currentGlyph.canRedo())
+            self._redoAction.setEnabled(undoManager.canRedo())
             undoManager.canRedoChanged.connect(self._redoAction.setEnabled)
         # and other actions
         for action in self._clipboardActions:

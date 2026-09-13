@@ -188,6 +188,8 @@ class Application(QApplication):
         fileMenu.fetchAction(Entries.File_Exit, self.closeAll)
 
         editMenu = menuBar.fetchMenu(Entries.Edit)
+        editMenu.fetchAction(Entries.Edit_Undo, self.undo)
+        editMenu.fetchAction(Entries.Edit_Redo, self.redo)
         editMenu.fetchAction(Entries.Edit_Settings, self.settings)
 
         viewMenu = menuBar.fetchMenu(Entries.View)
@@ -552,6 +554,16 @@ class Application(QApplication):
         self.quit()
 
     # Edit
+
+    def undo(self):
+        glyph = self.currentGlyph()
+        if glyph is not None:
+            glyph.undoManager.undo()
+
+    def redo(self):
+        glyph = self.currentGlyph()
+        if glyph is not None:
+            glyph.undoManager.redo()
 
     def settings(self):
         if hasattr(self, "_settingsWindow") and self._settingsWindow.isVisible():
